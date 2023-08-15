@@ -1,9 +1,15 @@
 ################################################################################################
-# Enunciado:    Se debe desarrollar un programa en Python que simule una carrera de 10 caballos 
-#               en la que cada caballo avanza un metro a la vez hasta llegar a 20 metros, 
-#               utilizando hilos para representar el avance de cada caballo de forma paralela. 
-#               Cada caballo debe correr en un hilo separado, y el primero en llegar a la meta 
-#               debe declarar “Gane”, deteniendo los procesos de los demás caballos.
+# Enunciado:    Implementar una "carrera de caballos" usando threads, donde cada "caballo" es un 
+#               Thread o bien un objeto de una clase que sea sub clase de Thread, y contendrá una
+#               posición dada por un número entero. El ciclo de vida de este objeto es incrementar 
+#               la posición en variados instantes de tiempo, mientras no haya llegado a la meta, 
+#               la cual es simplemente un entero prefijado. Una vez que un caballo llegue a la meta, 
+#               se debe informar en pantalla cuál fue el ganador, luego de lo cual los demás caballos 
+#               no deberán seguir corriendo. Imprimir durante todo el ciclo las posiciones de los 
+#               caballos, o bien de alguna manera el camino que va recorriendo cada uno (usando 
+#               símbolos Ascii). El programa podría producir un ganador disitnto cada vez que se corra. 
+#               Opcionalmente, extender el funcionamiento a un array de n caballos, donde n puede ser 
+#               un parámetro.
 # Autor: Nicolás Villamonte
 # Año: 2023
 # Materia: Seminario de Programación Paralela y Concurrente
@@ -14,6 +20,7 @@
 from threading import Thread, Event, Lock
 import time
 import random
+import os
 
 class Caballo(Thread):
     def __init__(self, nombre, evento_ganador, lock_ganador):
@@ -22,26 +29,45 @@ class Caballo(Thread):
         self.distancia_recorrida = 0
         self.evento_ganador = evento_ganador
         self.lock_ganador = lock_ganador
+        self.ganador = False
 
     def correr(self):
-        while self.distancia_recorrida < 20 and not self.evento_ganador.is_set():
+        while not self.evento_ganador.is_set():
             tiempo_espera = random.uniform(0.1, 0.5)  # Un tiempo aleatorio para simular la carrera
             time.sleep(tiempo_espera)
             self.distancia_recorrida += 1
+            
+            with print_lock:
+                print_positions()
 
-            if self.distancia_recorrida == 20:
+            if self.distancia_recorrida == distancia_carrera:
                 with self.lock_ganador:  # Asegurarse de que solo un hilo pueda entrar en esta sección a la vez
                     if not self.evento_ganador.is_set():  # Verificar nuevamente dentro del lock
-                        print(f"{self.nombre} dice: ¡Gané!")
+                        self.ganador = True
                         self.evento_ganador.set()
 
     def run(self):
         self.correr()
+        
+
+def print_positions():
+    """Imprime las posiciones de los caballos en el transcurso de la carrera."""
+    
+    os.system('cls' if os.name == 'nt' else 'clear')    # Limpiar la pantalla
+    
+    print(f"Carrera de {len(caballos)} caballos por {distancia_carrera} metros:\n\n")                   # Titulo de la carrera
+    for caballo in caballos:
+        print("■" * caballo.distancia_recorrida + caballo.nombre)
+    print("\n" + "═" * (distancia_carrera + 10))
 
 if __name__ == "__main__":
-    cantidad_caballos = 5
+    global distancia_carrera, caballos, print_lock
+    cantidad_caballos = int(input("Cantidad de caballos: "))
+    distancia_carrera = int(input("Distancia de la carrera: "))
+    
     evento_ganador = Event()
     lock_ganador = Lock()  # Lock para garantizar que solo un hilo pueda declarar su victoria a la vez
+    print_lock = Lock()
     caballos = [Caballo(f"Caballo {i + 1}", evento_ganador, lock_ganador) for i in range(cantidad_caballos)]
 
     print("La carrera se esta ejecutando...")
@@ -52,3 +78,13 @@ if __name__ == "__main__":
         caballo.join()
 
     print("Carrera terminada.")
+    
+    print("\nResultados:")
+    caballo_ganador = next((caballo for caballo in caballos if caballo.ganador), None)
+    print(f"1° lugar: {caballo_ganador.nombre} ¡GANADOR! 🥇")
+    caballos_ordenados = sorted(caballos, key=lambda x: x.distancia_recorrida, reverse=True)
+    i = 1
+    for _, caballo in enumerate(caballos_ordenados):
+        if not caballo.ganador:
+            print(f"{i+1}° lugar: {caballo.nombre}")
+            i += 1
