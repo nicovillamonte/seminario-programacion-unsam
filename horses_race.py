@@ -83,7 +83,7 @@ if __name__ == "__main__":
     print("\nResultados:")
     caballo_ganador: Caballo = next((caballo for caballo in caballos if caballo.ganador), None)
     print(f"1° lugar: {caballo_ganador.nombre} ¡GANADOR! 🥇")
-    caballos_ordenados: List[Caballo] = sorted(caballos, key=lambda x: x.distancia_recorrida, reverse=True)
+    caballos_ordenados: List[Caballo] = sorted(caballos, key=lambda caballo: caballo.distancia_recorrida, reverse=True)
     i: int = 1
     for _, caballo in enumerate(caballos_ordenados):
         if not caballo.ganador:
