@@ -18,12 +18,13 @@
 ################################################################################################
 
 from threading import Thread, Event, Lock
+from typing import List
 import time
 import random
 import os
 
 class Caballo(Thread):
-    def __init__(self, nombre, evento_ganador, lock_ganador):
+    def __init__(self, nombre: str, evento_ganador: Event, lock_ganador: Lock) -> None:
         super().__init__()
         self.nombre = nombre
         self.distancia_recorrida = 0
@@ -31,7 +32,7 @@ class Caballo(Thread):
         self.lock_ganador = lock_ganador
         self.ganador = False
 
-    def correr(self):
+    def correr(self) -> None:
         while not self.evento_ganador.is_set():
             tiempo_espera = random.uniform(0.1, 0.5)  # Un tiempo aleatorio para simular la carrera
             time.sleep(tiempo_espera)
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     evento_ganador = Event()
     lock_ganador = Lock()  # Lock para garantizar que solo un hilo pueda declarar su victoria a la vez
     print_lock = Lock()
-    caballos = [Caballo(f"Caballo {i + 1}", evento_ganador, lock_ganador) for i in range(cantidad_caballos)]
+    caballos: List[Caballo] = [Caballo(f"Caballo {i + 1}", evento_ganador, lock_ganador) for i in range(cantidad_caballos)]
 
     print("La carrera se esta ejecutando...")
     for caballo in caballos:
@@ -80,10 +81,10 @@ if __name__ == "__main__":
     print("Carrera terminada.")
     
     print("\nResultados:")
-    caballo_ganador = next((caballo for caballo in caballos if caballo.ganador), None)
+    caballo_ganador: Caballo = next((caballo for caballo in caballos if caballo.ganador), None)
     print(f"1° lugar: {caballo_ganador.nombre} ¡GANADOR! 🥇")
-    caballos_ordenados = sorted(caballos, key=lambda x: x.distancia_recorrida, reverse=True)
-    i = 1
+    caballos_ordenados: List[Caballo] = sorted(caballos, key=lambda x: x.distancia_recorrida, reverse=True)
+    i: int = 1
     for _, caballo in enumerate(caballos_ordenados):
         if not caballo.ganador:
             print(f"{i+1}° lugar: {caballo.nombre}")
