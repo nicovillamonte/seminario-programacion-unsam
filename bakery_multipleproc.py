@@ -8,15 +8,17 @@
 ################################################################################################
 
 from threading import Thread
+from colorama import Fore, Back, Style
+import random
 
 def bakery_algorithm(i):
     "Define una funcion para el algoritmo de bakery en el proceso i"
     
     global n_proc, turn
     
-    print(f"{i}: non-critical section")
-    for _ in range(1000000):
+    for _ in range(random.randint(1, 10000000)):
         pass
+    print(f"{i}: non-critical section")
     
     turn[i] = 1 + max(turn)
     
@@ -26,7 +28,7 @@ def bakery_algorithm(i):
         while turn[j] != 0 and (turn[i] > turn[j] or (turn[i] == turn[j] and i > j)):
             pass
     
-    print(f"{i}: critical section")
+    print(Fore.BLACK + Back.RED + f"{i}: critical section" + Style.RESET_ALL)
     
     turn[i] = 0
     
