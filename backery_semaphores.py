@@ -1,3 +1,13 @@
+################################################################################################
+# Enunciado:    Implementar el algoritmo de Bakery para dos procesos haciendo uso de los 
+#               semaforos.
+# Autor: Nicolás Villamonte
+# Año: 2023
+# Materia: Seminario de Programación Paralela y Concurrente
+# Institucion: UNSAM (Universidad Nacional de San Martin)
+# Fecha: 03/09/2023
+################################################################################################
+
 from threading import Thread, Semaphore
 
 sem = Semaphore()
@@ -16,9 +26,8 @@ def semaphored_section(i):
     sem.release()
 
 if __name__ == "__main__":
-    global n_proc, turn
+    global n_proc
     n_proc = int(input("Number of threads: "))
-    turn = [0] * n_proc
     
     # Creacion de threads
     threads = [Thread(target=semaphored_section, args=(i,)) for i in range(n_proc)]
