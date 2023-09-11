@@ -9,19 +9,20 @@
 ################################################################################################
 
 from threading import Thread, Semaphore
+from colorama import Fore, Back, Style
 
 sem = Semaphore()
 
 def semaphored_section(i):
     "Define una funcion para el algoritmo de bakery en el proceso i con semaforos"
     
-    print(f"{i}: non-critical section")
     for _ in range(1000000):
         pass
+    print(f"{i}: non-critical section")
     
     sem.acquire()
     
-    print(f"{i}: critical section")
+    print(Fore.BLACK + Back.RED + f"{i}: critical section" + Style.RESET_ALL)
     
     sem.release()
 
