@@ -1,3 +1,12 @@
+################################################################################################
+# Enunciado:    Implementar un algorítmo de exclusión mutua simple para dos procesos.
+# Autor: Nicolás Villamonte
+# Año: 2023
+# Materia: Seminario de Programación Paralela y Concurrente
+# Institucion: UNSAM (Universidad Nacional de San Martin)
+# Fecha: 11/09/2023
+################################################################################################
+
 from threading import Thread
 from colorama import Fore, Back, Style
 
