@@ -8,7 +8,7 @@ sem1 = Semaphore(0)
 sem2 = Semaphore(0)
 
 def print_c(text, color = Fore.RESET, bg_color = Back.RESET):
-    print(bg_color + color + text + Style.RESET_ALL)
+  print(bg_color + color + text + Style.RESET_ALL)
 
 def proceso1():
   print_c("Proceso 1: Inicio de tarea.", color=Fore.GREEN)
