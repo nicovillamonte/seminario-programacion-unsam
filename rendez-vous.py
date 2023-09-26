@@ -1,3 +1,12 @@
+################################################################################################
+# Enunciado:    Implementar el problema de rendez-vous para dos procesos con semáforos.
+# Autor: Nicolás Villamonte
+# Año: 2023
+# Materia: Seminario de Programación Paralela y Concurrente
+# Institucion: UNSAM (Universidad Nacional de San Martin)
+# Fecha: 25/09/2023
+################################################################################################
+
 # Importando la biblioteca para trabajar con hilos y tiempo
 from threading import Thread, Semaphore
 import time
@@ -34,13 +43,14 @@ def proceso2():
   print_c("Proceso 2: Continuando después del encuentro.", color=Fore.CYAN)
   time.sleep(1)  # Simular un retardo adicional
 
-# Crear y lanzar los hilos
-hilo1 = Thread(target=proceso1)
-hilo2 = Thread(target=proceso2)
+if __name__ == "__main__":
+  # Crear y lanzar los hilos
+  hilo1 = Thread(target=proceso1)
+  hilo2 = Thread(target=proceso2)
 
-hilo1.start()
-hilo2.start()
+  hilo1.start()
+  hilo2.start()
 
-hilo1.join()
-hilo2.join()
-print_c("Finalización de ejecución de hilos.", color=Fore.YELLOW, bg_color=Back.RED)
+  hilo1.join()
+  hilo2.join()
+  print_c("Finalización de ejecución de hilos.", color=Fore.YELLOW, bg_color=Back.RED)

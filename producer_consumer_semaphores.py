@@ -1,3 +1,12 @@
+################################################################################################
+# Enunciado:    Implementar el problema de productor-consumidor utilizando semáforos.
+# Autor: Nicolás Villamonte
+# Año: 2023
+# Materia: Seminario de Programación Paralela y Concurrente
+# Institucion: UNSAM (Universidad Nacional de San Martin)
+# Fecha: 25/09/2023
+################################################################################################
+
 from threading import Thread, Semaphore 
 from time import sleep
 from random import uniform
@@ -48,17 +57,18 @@ def consumidor_fn():
         
         sleep(uniform(0.2, 0.6))
 
-# Creamos threads para los productores y el consumidor
-productor1 = Thread(target=productor_fn, args=(1,))
-productor2 = Thread(target=productor_fn, args=(2,))
-consumidor = Thread(target=consumidor_fn)
+if __name__ == "__main__":
+    # Creamos threads para los productores y el consumidor
+    productor1 = Thread(target=productor_fn, args=(1,))
+    productor2 = Thread(target=productor_fn, args=(2,))
+    consumidor = Thread(target=consumidor_fn)
 
-# Iniciamos los threads
-productor1.start()
-productor2.start()
-consumidor.start()
+    # Iniciamos los threads
+    productor1.start()
+    productor2.start()
+    consumidor.start()
 
-# Esperamos a que todos los threads terminen
-productor1.join()
-productor2.join()
-consumidor.join()
+    # Esperamos a que todos los threads terminen
+    productor1.join()
+    productor2.join()
+    consumidor.join()
