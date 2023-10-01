@@ -55,7 +55,9 @@ A continuación, asignaremos los cubiertos a este filósofo para evitar que coma
 
 La simulación se ve de esta manera:
 
-------------------------------------GIF DE PRIMERA SIMULACIÓN
+<div align="center" id="gif-1">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/3a8db7c1-ded9-40c5-bd4b-08ab12dbfc0e" alt="Gif Diagramas de Petri-1 filo dl simple con cubiertos"  />
+</div>
 
 
 ### Dos filósofos
