@@ -12,6 +12,7 @@ Las simulaciones se realizarán con la página https://petri.hp102.ru/pnet.html
     1. [Características de los Filósofos](#características-de-los-filósofos)
     2. [Un sólo filósofo](#un-sólo-filósofo)
     3. [Dos filósofos](#dos-filósofos)
+    4. [Cinco filósofos](#cinco-filósofos)
 2. [Segunda Versión](#segunda-versión)
     1. [Nuevos Filósofos](#nuevos-filósofos)
     2. [Segunda versión con 1 filósofo](#segunda-versión-con-1-filósofo)
