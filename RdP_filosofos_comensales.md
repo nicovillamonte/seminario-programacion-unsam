@@ -6,6 +6,18 @@ Este problema propone una situación en la que cinco filósofos se encuentran se
 
 Las simulaciones se realizarán con la página https://petri.hp102.ru/pnet.html
 
+[**Desarrollo**](#desarrollo)
+
+1. [Primer Versión](#primer-versión)
+    1. [Características de los Filósofos](#características-de-los-filósofos)
+    2. [Un sólo filósofo](#un-sólo-filósofo)
+    3. [Dos filósofos](#dos-filósofos)
+2. [Segunda Versión](#segunda-versión)
+    1. [Nuevos Filósofos](#nuevos-filósofos)
+    2. [Segunda versión con 1 filósofo](#segunda-versión-con-1-filósofo)
+    3. [2 filósofos sin DeadLock](#2-filósofos-sin-deadlock)
+3. [Solución final](#solución-final)
+
 # Desarrollo
 
 Conforme se mencionó anteriormente, adoptaremos un enfoque progresivo para resolver el problema de los filósofos comensales. Iniciaremos simplificando el problema con el objetivo de, gradualmente, alcanzar una solución robusta y funcional sin enfrentar dificultades abrumadoras en el proceso.
@@ -18,14 +30,14 @@ Esta simplificación permite una aproximación inicial más manejable al problem
 
 ### Características de los Filósofos
 
-Propondremos una solución inicial al problema de los filósofos comensales en su versión simplificada, utilizando Redes de Petri. Para ello, es crucial entender la función de los elementos constituyentes de la red, tales como los lugares (places), las transiciones y los tokens. Por lo tanto, estableceremos una serie de reglas antes de proceder con la elaboración de la red:
-- Los filósofos estarán representados por todos sus estados posibles, los cuales serán delineados mediante lugares en la Red de Petri. En este escenario, un filósofo puede encontrarse en uno de los tres estados siguientes:-
+Propondremos una solución inicial al problema de los filósofos comensales en su versión simplificada, utilizando Redes de Petri. Para ello, es crucial entender la función de los elementos constituyentes de la red, tales como los *lugares* (places), las *transiciones* y los *tokens*. Por lo tanto, estableceremos una serie de reglas antes de proceder con la elaboración de la red:
+- Los **filósofos** estarán representados por todos sus estados posibles, los cuales serán delineados mediante *lugares* en la Red de Petri. En este escenario, un filósofo puede encontrarse en uno de los tres estados siguientes:
     - Posee el cubierto derecho (Posee CD)
     - Posee ambos cubiertos y puede comer. (Comiendo)
     - Ha concluido su comida y ha regresado los cubiertos a la mesa y/o está esperando los cubiertos para comer, lo que le da tiempo de pensar. (Pensando)
 - Dada la simplificación del problema, donde se omite el estado de reflexión de los filósofos, el estado inicial se define como aquel en el que los filósofos ya han comido y han dejado los cubiertos en la mesa. Consecuentemente, se situará un token en el lugar que representa este estado. 
-- Los cubiertos también serán representados por lugares en la red. Inicialmente, cada cubierto contará con un token, indicando que dicho recurso se encuentra disponible sobre la mesa para ser tomado por los filósofos.
-- Las acciones, tales como tomar un cubierto, dejar un cubierto, y comer, serán representadas mediante las transiciones. Todas estas acciones son ejecutadas por los filósofos, mientras que los cubiertos solo se ven afectados por las mismas.
+- Los **cubiertos** también serán representados por *lugares* en la red. Inicialmente, cada cubierto contará con un token, indicando que dicho recurso se encuentra disponible sobre la mesa para ser tomado por los filósofos.
+- Las **acciones**, tales como tomar un cubierto, dejar un cubierto, y comer, serán representadas mediante las *transiciones*. Todas estas acciones son ejecutadas por los filósofos, mientras que los cubiertos solo se ven afectados por las mismas.
 
 ### Un sólo filósofo
 
@@ -71,10 +83,10 @@ En términos de las Redes de Petri, esto se traduce en demostrar que, si ambos c
 ### Nuevos Filósofos
 
 Por lo tanto, vamos a tomar a los filósofos con las siguientes propiedades:
-- Sus estados, representados por lugares, se reducirán a los siguientes:
+- Sus estados, representados por *lugares*, se reducirán a los siguientes:
     - **Pensando**: Estado en el que el filósofo esta esperando la disponibilidad de los cubiertos o pensando antes de querer tomarlos.
     - **Comiendo**: Estado en el que pudo tomar los dos cubiertos y comer, una vez en este estado ya estará listo para tomar la transición en la que deba dejar ambos cubiertos y volver a pensar
-- Las transiciones por las que va a pasar serán:
+- Las *transiciones* por las que va a pasar serán:
     - **Tomar cubiertos**: Acción en la que toma ambos cubiertos a la vez solamente si ambos se encuentran disponibles y la que transicionará al filósofo a su estado de comer.
     - **Dejar cubiertos**: Acción en la que el filósofo ya haya comido y quiera dejar los cubiertos en su lugar para seguir pensando.
 
