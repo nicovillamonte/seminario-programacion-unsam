@@ -70,11 +70,22 @@ Una vez tenemos un filósofo con sus cubiertos funcionando, vamos a hacer el int
 
 Vamos a ver como se ejecuta la simulación de esta red de Petri con 2 filósofos.
 
-------------------------------------GIF DE SEGUNDA SIMULACIÓN
+<div align="center" id="gif-2">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/1c79e065-2357-44d6-94cf-e6295824f6ba" alt="Gif Diagramas de Petri-2 filo dl simple con cubiertos"  />
+</div>
 
 En este contexto, nos podemos encontrar con la situación en la que un filósofo toma uno de los cubiertos mientras el otro filósofo toma el cubierto restante, resultando en una circunstancia donde ambos filósofos permanecen en espera del cubierto que tiene el otro y, por ende, se hallan incapaces de comer. Esta condición de espera mutua conduce a un estancamiento, donde ninguno de los filósofos puede avanzar hacia el siguiente estado de la operación. Acabamos de producir un **DeadLock**.
 
 Por lo tanto, ahora vamos a hacer otra versión en la que solucionaremos este problema.
+
+### Cinco filósofos
+
+Sin embargo, antes de comenzar con la segunda versión, vamos a ver como quedaría esta solución con los cinco filósofos requeridos por el problema, en la que vamos a visualizar el mismo problema. Vamos a ver la simulación:
+
+<div align="center" id="gif-2-5">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/4dba13b9-0713-46c4-a789-d7eabf33f461" alt="GIF Diagramas de Petri-5 filo dl simple con cubiertos"  />
+</div>
+
 
 ## Segunda Versión
 
@@ -108,8 +119,9 @@ Ahora podemos añadirle, al único filósofo que tenemos, dos cubiertos para que
 
 Esta vez, cuando el filósofo deje de pensar o esperar y quiera tomar los cubiertos, va a tomarlos los dos al mismo tiempo solamente si están ambos disponibles, luego comerá y dejará los dos cubiertos nuevamente para volver a pensar y repetir el bucle constantemente.
 
-
-------------------------------------GIF DE TERCERA SIMULACIÓN
+<div align="center" id="gif-3">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/d70a91ba-72b3-424d-a924-4fffd692216a" alt="GIF Diagramas de Petri-1 filo correcto con cubiertos"  />
+</div>
 
 ### 2 filósofos sin DeadLock
 
@@ -121,7 +133,9 @@ A esta última solución le vamos a agregar otro filósofo como hicimos previame
 
 Cuya simulación podría verse de la siguiente manera:
 
-------------------------------------GIF DE CUARTA SIMULACIÓN
+<div align="center" id="gif-4">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/91eaae62-e6d0-4e41-a227-f2e23d20fb62" alt="GIF Diagramas de Petri-2 filo correcto con cubiertos"  />
+</div>
 
 > IMPORTANTE: Se logra ver que solo uno de los filósofos llega a comer, esto no se debe a un error en la Red de Petri, sino que se debe al software que se esta utilizando para simularla, ya que cuando debe decidir entre dos _lugares_ de la red elige el que tiene valor más bajo en su etiqueta. Se puede ver cómo funcionaría agregando un _token_ a los cubiertos.
 
@@ -139,19 +153,14 @@ La cual responde al siguiente esquema:
   <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/c5b48171-d050-40a2-9fe0-82c5b3ff729d" alt="Esquema"  />
 </div>
 
+Esta sería la simulación final de la Red, vamos a ver inconsistencias por lo mencionado anteriormente, pero es por el software de simulación y no por la red confeccionada:
 
+<div align="center" id="gif-5">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/2e352f9a-4d06-475b-9432-68881b22d397" alt="GIF Diagramas de Petri-5 filo correcto con cubiertos"  />
+</div>
 
+Vamos a hacer algo de trampa y verlo también con 2 _tokens_ por cada cubierto para poder visualizar como todos los filósofos en la realidad van a formar parte del sistema:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+<div align="center" id="gif-5-5">
+  <img src="https://github.com/nicovillamonte/seminario-programacion-unsam/assets/64659720/e87a265a-54bb-44e9-b421-73c1332d63a9" alt="Diagramas de Petri-5 filo correcto con cubiertos - trampa"  />
+</div>
