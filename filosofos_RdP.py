@@ -1,3 +1,19 @@
+################################################################################################
+# Enunciado:    Mediante una red de petri clásica, se debe modelar el problema de los filósofos
+#               comensales. Se debe simular la situación en la que N filósofos se sientan alrededor
+#               de una mesa y tienen N cubiertos para comer. Cada filósofo alterna entre pensar y
+#               comer, y para comer debe tomar los dos cubiertos que tiene a su lado. Si un filósofo
+#               no puede tomar ambos cubiertos, entonces no puede comer y debe volver a pensar.
+#               Cuando un filósofo termina de comer, debe dejar los cubiertos sobre la mesa y volver
+#               a pensar. El programa debe terminar cuando todos los filósofos hayan comido al menos
+#               3 veces.
+# Autor: Nicolás Villamonte
+# Año: 2023
+# Materia: Seminario de Programación Paralela y Concurrente
+# Institucion: UNSAM (Universidad Nacional de San Martin)
+# Fecha: 09/10/2023
+################################################################################################
+
 from snakes.nets import PetriNet, Place, Transition, dot, Value
 from threading import Thread, Lock
 from colorama import Fore, Back, Style
