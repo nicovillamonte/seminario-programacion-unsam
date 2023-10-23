@@ -93,6 +93,49 @@ def pyskellRunProccess(function, *args):
     except Exception as e:
         return f"Error: {e}.\n Error Name: {type(e).__name__}"
 
+def is_valid_list_or_tuple(s):
+    return (s.startswith('[') and s.endswith(']')) or (s.startswith('(') and s.endswith(')'))
+
+def safe_eval(s):
+    try:
+        return eval(s, {"__builtins__": None}, {})
+    except Exception:
+        return s
+
+def custom_split(s):
+    if s is None:
+          import warnings
+          warnings.warn("Passing None for 's' to shlex.split() is deprecated.",
+                        DeprecationWarning, stacklevel=2)
+    args = []
+    current_arg = ""
+    bracket_count = 0
+    for char in s:
+        if char in "[(":
+            bracket_count += 1
+        elif char in "])":
+            bracket_count -= 1
+        if bracket_count > 0 or char not in " ,":
+            current_arg += char
+        elif current_arg:
+            args.append(current_arg)
+            current_arg = ""
+    if current_arg:
+        args.append(current_arg)  # añadir el último argumento si hay alguno
+    return args
+
+def otro_split(s, comments=False, posix=True):
+    """Split the string *s* using shell-like syntax."""
+    if s is None:
+        import warnings
+        warnings.warn("Passing None for 's' to shlex.split() is deprecated.",
+                      DeprecationWarning, stacklevel=2)
+    lex = shlex(s, posix=posix)
+    lex.whitespace_split = True
+    if not comments:
+        lex.commenters = ''
+    return list(lex)
+  
 def main():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         print("Pyskell v0.1.0. For help type '!h' or 'help'.")
@@ -102,26 +145,31 @@ def main():
             if special_func:
                 special_func()
                 continue
-            comando_split = shlex.split(comando)  # Utiliza shlex.split para dividir el comando
-            # print("comando spliteado", comando_split)
-            if len(comando_split) >= 2:
-                funcion_nombre = comando_split[0]
-                argumentos = comando_split[1:]
-                # Busca la función en el módulo actual por nombre
-                funcion = globals().get(funcion_nombre)
-                if funcion is not None and callable(funcion):
-                    # Usa pyskellRunProccess para llamar a la función con el primer argumento
-                    resultado = pyskellRunProccess(funcion, argumentos[0])
-                    if callable(resultado):  # Si el resultado es una función, aplica los argumentos restantes
-                        # Aplica los argumentos restantes uno por uno
-                        resultado_final = pyskellRunProccess(apply_args, resultado, argumentos[1:])
-                        print(resultado_final)
-                    else:
-                        print(resultado)  # Imprimir el resultado si no hay errores
+              
+            # comando_split = shlex.split(comando)  # Utiliza shlex.split para dividir el comando
+            # comando_split = otro_split(comando)  # Utiliza shlex.split para dividir el comando
+            
+            comando_split = custom_split(comando)
+            # Convertir argumentos que representan listas o tuplas a objetos de Python
+            argumentos = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
+            funcion_nombre = comando_split[0]
+            # Busca la función en el módulo actual por nombre
+            funcion = globals().get(funcion_nombre)
+            if funcion is not None and callable(funcion):
+                # Usa pyskellRunProccess para llamar a la función con el primer argumento
+                resultado = pyskellRunProccess(funcion, argumentos[0])
+                if callable(resultado):  # Si el resultado es una función, aplica los argumentos restantes
+                    # Aplica los argumentos restantes uno por uno
+                    resultado_final = pyskellRunProccess(apply_args, resultado, argumentos[1:])
+                    print(resultado_final)
                 else:
-                    print(f"Function '{funcion_nombre}' not recognized or callable.")
+                    print(resultado)  # Imprimir el resultado si no hay errores
             else:
-                print(f"Unrecognized command.")
+                print(f"Function '{funcion_nombre}' not recognized or callable.")
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
