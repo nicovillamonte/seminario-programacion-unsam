@@ -11,10 +11,8 @@ class PyskellFunction:
         self.type = type
         self.command = ""
 
-    # def run(self, arg):
-    #     return self.func(arg)
     def __call__(self, *args: Any) -> Any:
-        return self.func(args[0])
+        return self.func(args[0]) if len(args) > 0 else self.func()
     
     def calleable(self):
         return callable(self.func)
@@ -22,18 +20,8 @@ class PyskellFunction:
     def set_command(self, command):
         self.command = command
     
-    # def __type__(self):
-    #     argument = self.func.__annotations__
-    #     argument_type = [v for k, v in argument.items() if k != 'return'][0]
-    #     return_type = self.func.__annotations__['return']
-
-    #     return f"{argument_type.__name__} -> {return_type.__name__ if self.inner_function is None else self.inner_function.__type__()}"
-    
     def destruct_type(self, _obj):
         self_type, inner_type = _obj.type
-        
-        if self_type is None and inner_type is None:
-            return self()
         
         if (type(_obj.type[0]) is type and type(_obj.type[1]) is PyskellFunction):
             return f"{self_type.__name__} -> {self.destruct_type(inner_type)}"
@@ -41,20 +29,7 @@ class PyskellFunction:
             return _obj.type[0].__name__ + " -> " + _obj.type[1].__name__
     
     def __str__(self):
-        # self_type, inner_type = self.type
-        # print("self_type", self_type)
-        # return self_type.__name__ + " -> "
         return f"{self.name if self.name != '_' else f'({self.command})'} :: {self.destruct_type(self)}"
-    
-
-    # def __str__(self):
-    #     print("Estoy imprimiendo ", self.name)
-    #     argument = self.func.__annotations__
-    #     argument_type = [v for k, v in argument.items() if k != 'return'][0]
-    #     return_type = self.func.__annotations__['return']
-
-    #     return f"{self.name} :: {argument_type.__name__} -> {return_type.__name__}"
-        # return f"{argument_type.__name__} -> {return_type.__name__ if self.inner_function is None else self.inner_function.__str__()}"
 
     def __repr__(self):
         return f"<PyskellFunction: {self.name}>"
@@ -75,7 +50,7 @@ doble = PyskellFunction('doble', doble_pyskell, type=(float, float))
 def suma_pyskell(n: float) -> PyskellFunction:
     def inner_suma_pyskell (m: float) -> float:
         return float(n) + float(m)
-    return PyskellFunction('_', inner_suma_pyskell, type=(float,float))
+    return PyskellFunction(func=inner_suma_pyskell, type=(float,float))
 suma = PyskellFunction('suma', suma_pyskell, type=(float, PyskellFunction(type=(float,float))))
 
 # Función upperCase (String -> String)
@@ -106,27 +81,13 @@ sumOf = PyskellFunction('sumOf', sumOf_pyskell, type=(list, int))
 def isStrEq_pyskell(s):
     def inner_isStrEq_pyskell(x):
         return s == x
-    return PyskellFunction("_", inner_isStrEq_pyskell, type=(str, bool))
+    return PyskellFunction(func=inner_isStrEq_pyskell, type=(str, bool))
 isStrEq = PyskellFunction('isStrEq', isStrEq_pyskell, type=(str, PyskellFunction(type=(str, bool))))
 
 def helloWorld_pyskell():
-    return "Hola"
-helloWorld = PyskellFunction('helloWorld', helloWorld_pyskell, type=(None, str))
+    return "Hello World!"
+helloWorld = PyskellFunction('helloWorld', helloWorld_pyskell, type=(str))
 
-
-# def ftype(function):
-#     function = globals().get(function)
-#     # if not callable(function):
-#     #     return "Function not found or not callable."
-    
-#     # Get the type of the first argument of function
-#     argument = function.__annotations__['n']
-#     print("argument", argument)
-#     #  What type is the return value of function
-#     return_type = function.__annotations__['return']
-    
-    
-#     return type(argument).__name__ + " -> " + return_type.__name__
 
 # ---------- Comandos Especiales ----------
 def clear_screen():
@@ -141,17 +102,47 @@ def show_help():
     print("Available commands:")
     for cmd, desc in commands.items():
         print(f"\t{Fore.GREEN}{cmd}{Style.RESET_ALL}: {desc}")
+        
+
+def return_type_pyskell(function):
+    function, arguments = function[0], function[1:]
+    
+    function = globals().get(function)
+    command_string = f"{function.name} {' '.join(arguments)}"
+    
+    if function is not None and function.calleable():
+        function.set_command(command_string)
+        # Usa pyskellRunProccess para llamar a la función con el primer argumento
+        resultado = None
+        if len(arguments) == 0:
+            resultado = pyskellRunProccess(function)
+        else:
+            resultado = pyskellRunProccess(function, arguments[0])
+        
+        if callable(resultado):  # Si el resultado es una función, aplica los argumentos restantes
+            resultado.set_command(command_string)
+            # Aplica los argumentos restantes uno por uno
+            resultado_final = pyskellRunProccess(apply_args, resultado, arguments[1:])
+            print(resultado_final.__str__() if isinstance(resultado_final, PyskellFunction) else f"({command_string}) :: {type(resultado_final).__name__}" )
+        else:
+            print(f"({command_string}) ::", resultado.__str__() if isinstance(resultado, PyskellFunction) else type(resultado).__name__)
+    else:
+        print(f"Function '{function}' not recognized or callable.")
+    
 
 special_commands = {
     '!c': clear_screen,
     'clear': clear_screen,
     '!h': show_help,
     'help': show_help,
+    'ftype': return_type_pyskell,
     '!q': lambda: [clear_screen(), exit()],
     'exit': lambda: [clear_screen(), exit()]
 }
 
 # ---------- Consola de Pyskell ----------
+
+
 def apply_args(func, args):
     result = func
     for arg in args:
@@ -231,10 +222,7 @@ def main():
         print("Pyskell v0.1.0. For help type '!h' or 'help'.")
         while True:
             comando = input("> ")
-            special_func = special_commands.get(comando.lower().replace(' ', ''))
-            if special_func:
-                special_func()
-                continue
+            
               
             # comando_split = shlex.split(comando)  # Utiliza shlex.split para dividir el comando
             # comando_split = otro_split(comando)  # Utiliza shlex.split para dividir el comando
@@ -246,6 +234,15 @@ def main():
             except Exception as e:
                 print(f"Error: {e}.")
                 continue
+            
+            
+            special_func = special_commands.get(comando_split[0].lower().replace(' ', ''))
+            
+            if special_func:
+                # if not arguments then call special_func() else call special_func(arguments)
+                special_func() if len(comando_split[1:]) == 0 else special_func(comando_split[1:])
+                continue
+            
             # Convertir argumentos que representan listas o tuplas a objetos de Python
             argumentos = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
             funcion_nombre = comando_split[0]
