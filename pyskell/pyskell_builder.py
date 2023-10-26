@@ -145,37 +145,24 @@ def search_pyskell_function_by_name(name):
 
 def run_command(comando):
     comando_split = None
-    # print(f"{comando}: parte 1")
     try:
         comando_split = process_command(comando)
     except Exception as e:
         print(f"Error: {e}.")
         return "continue"
     
-    # print(f"{comando}: parte 2")
-    
     special_func = special_commands.get(comando_split[0].lower().replace(' ', ''))
-    
-    # print(f"{comando}: parte 3")
     
     if special_func:
         special_func() if len(comando_split[1:]) == 0 else special_func(comando_split[1:])
         return "continue"
     
-    # print(f"{comando}: parte 4")
-    
     # Convertir argumentos que representan listas o tuplas a objetos de Python
     argumentos = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
     
-    # print(f"{comando}: parte 5")
-    
     funcion_nombre = comando_split[0]
     
-    # print(f"{comando}: parte 6")
-    
     funcion = search_pyskell_function_by_name(funcion_nombre)
-    
-    # print(f"{comando}: parte 7")
     
     if funcion is not None and funcion.calleable():
         funcion.set_command(comando)
@@ -196,17 +183,14 @@ def run_command(comando):
         print(f"Function '{funcion_nombre}' not recognized or callable.")
 
 
-# HILOS = False
 def main():
     file = sys.argv[1]
     
-    # open file
     lines = []
     with open(file, 'r') as f:
         lines = f.readlines()
         for i, line in enumerate(lines):
             lines[i] = line.replace('\n', '')
-        # print(lines)
 
     results = []
     for activated_hilo in [False, True]:
@@ -224,22 +208,10 @@ def main():
             
             for hilo in hilos:
                 hilo.start()
-                # Poner un timer por cada uno (Hacer alguna demostracion de que se ejecutan en paralelo)
             
             for hilo in hilos:
                 hilo.join()
         
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     
-            
-        #     # results = [executor.submit(run_command, comando) for comando in lines]
-            
-            
-            # print(results)
-            
-            # for f in concurrent.futures.as_completed(results):
-            #     print(f.result())
-                
         end = time.time()
         results.append(end - start)
         print(round(end - start,6), "seconds")
