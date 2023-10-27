@@ -1,0 +1,5 @@
+for i 3
+    factorial i+1
+
+suma 2 3
+ftype suma 2 3
