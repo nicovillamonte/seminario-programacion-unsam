@@ -1,16 +1,10 @@
-import sys
-
 import concurrent.futures
 import shlex
 import os
 import re
 from colorama import Fore, Back, Style
-import time
-# from threading import Thread
-from multiprocessing import Process
 
-
-from pyskell_types import PyskellFunction
+from pyskell_types import PyskellFunction, number as pyskell_number
 from pyskell_functions import pyskell_exported_functions
 
 # ---------- Comandos Especiales ----------
@@ -27,6 +21,31 @@ def show_help():
     for cmd, desc in commands.items():
         print(f"\t{Fore.GREEN}{cmd}{Style.RESET_ALL}: {desc}")
         
+
+# def return_type_pyskell(function):
+#     function, arguments = function[0], function[1:]
+    
+#     function = search_pyskell_function_by_name(function)
+#     command_string = f"{function.name} {' '.join(arguments)}"
+    
+#     if function is not None and function.calleable():
+#         function.set_command(command_string)
+#         # Usa pyskellRunProccess para llamar a la función con el primer argumento
+#         resultado = None
+#         if len(arguments) == 0:
+#             resultado = pyskellRunProccess(function)
+#         else:
+#             resultado = pyskellRunProccess(function, arguments[0])
+        
+#         if callable(resultado):  # Si el resultado es una función, aplica los argumentos restantes
+#             resultado.set_command(command_string)
+#             # Aplica los argumentos restantes uno por uno
+#             resultado_final = pyskellRunProccess(apply_args, resultado, arguments[1:])
+#             print(resultado_final.__str__() if isinstance(resultado_final, PyskellFunction) else f"({command_string}) :: {type(resultado_final).__name__}" )
+#         else:
+#             print(f"({command_string}) ::", resultado.__str__() if isinstance(resultado, PyskellFunction) else type(resultado).__name__)
+#     else:
+#         print(f"Function '{function}' not recognized or callable.")
 
 def return_type_pyskell(function):
     function, arguments = function[0], function[1:]
@@ -47,12 +66,15 @@ def return_type_pyskell(function):
             resultado.set_command(command_string)
             # Aplica los argumentos restantes uno por uno
             resultado_final = pyskellRunProccess(apply_args, resultado, arguments[1:])
+            
+            if isinstance(resultado, pyskell_number):
+                print(f"({command_string}) :: {pyskell_number.type_name()}")
+            
             print(resultado_final.__str__() if isinstance(resultado_final, PyskellFunction) else f"({command_string}) :: {type(resultado_final).__name__}" )
         else:
             print(f"({command_string}) ::", resultado.__str__() if isinstance(resultado, PyskellFunction) else type(resultado).__name__)
     else:
         print(f"Function '{function}' not recognized or callable.")
-    
 
 special_commands = {
     '!c': clear_screen,
@@ -64,7 +86,8 @@ special_commands = {
     'exit': lambda: [clear_screen(), exit()]
 }
 
-#------------------------------------------------
+# ---------- Consola de Pyskell ----------
+
 
 def apply_args(func, args):
     result = func
@@ -142,86 +165,49 @@ def search_pyskell_function_by_name(name):
             funcion = f
             break
     return funcion
-
-def run_command(comando):
-    comando_split = None
-    try:
-        comando_split = process_command(comando)
-    except Exception as e:
-        print(f"Error: {e}.")
-        return "continue"
-    
-    special_func = special_commands.get(comando_split[0].lower().replace(' ', ''))
-    
-    if special_func:
-        special_func() if len(comando_split[1:]) == 0 else special_func(comando_split[1:])
-        return "continue"
-    
-    # Convertir argumentos que representan listas o tuplas a objetos de Python
-    argumentos = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
-    
-    funcion_nombre = comando_split[0]
-    
-    funcion = search_pyskell_function_by_name(funcion_nombre)
-    
-    if funcion is not None and funcion.calleable():
-        funcion.set_command(comando)
-        
-        resultado = None
-        if len(argumentos) == 0:
-            resultado = pyskellRunProccess(funcion)
-        else:
-            resultado = pyskellRunProccess(funcion, argumentos[0])
-        
-        if callable(resultado):
-            resultado.set_command(comando)
-            resultado_final = pyskellRunProccess(apply_args, resultado, argumentos[1:])
-            print(resultado_final)
-        else:
-            print(resultado)
-    else:
-        print(f"Function '{funcion_nombre}' not recognized or callable.")
-
-
+  
 def main():
-    file = sys.argv[1]
-    
-    lines = []
-    with open(file, 'r') as f:
-        lines = f.readlines()
-        for i, line in enumerate(lines):
-            lines[i] = line.replace('\n', '')
-
-    results = []
-    for activated_hilo in [False, True]:
-        
-        print(f"Hilos {'activados' if activated_hilo else 'desactivados'}...")
-    
-        start = time.time()
-        
-        
-        if(not activated_hilo):
-            for comando in lines:
-                run_command(comando)
-        else:
-            hilos = [Process(target=run_command, args=(comando,)) for comando in lines]
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        print("Pyskell v0.1.0. For help type '!h' or 'help'.")
+        while True:
+            comando = input("> ")
             
-            for hilo in hilos:
-                hilo.start()
+            comando_split = None
+            try:
+                comando_split = process_command(comando)
+            except Exception as e:
+                print(f"Error: {e}.")
+                continue
             
-            for hilo in hilos:
-                hilo.join()
-        
-        end = time.time()
-        results.append(end - start)
-        print(round(end - start,6), "seconds")
-        print("End succesfully.")
-        time.sleep(5)
-        
-    print("Resultados: ")
-    print("Sin hilos: ", results[0])
-    print("Con hilos: ", results[1])
+            special_func = special_commands.get(comando_split[0].lower().replace(' ', ''))
+            
+            if special_func:
+                special_func() if len(comando_split[1:]) == 0 else special_func(comando_split[1:])
+                continue
+            
+            # Convertir argumentos que representan listas o tuplas a objetos de Python
+            argumentos = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
+            funcion_nombre = comando_split[0]
+            
+            funcion = search_pyskell_function_by_name(funcion_nombre)
+            
+            if funcion is not None and funcion.calleable():
+                funcion.set_command(comando)
+                
+                resultado = None
+                if len(argumentos) == 0:
+                    resultado = pyskellRunProccess(funcion)
+                else:
+                    resultado = pyskellRunProccess(funcion, argumentos[0])
+                
+                if callable(resultado):
+                    resultado.set_command(comando)
+                    resultado_final = pyskellRunProccess(apply_args, resultado, argumentos[1:])
+                    print(resultado_final)
+                else:
+                    print(resultado)
+            else:
+                print(f"Function '{funcion_nombre}' not recognized or callable.")
 
 if __name__ == "__main__":
-  
-  main()
+    main()

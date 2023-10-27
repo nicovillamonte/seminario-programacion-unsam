@@ -1,0 +1,13 @@
+for i 2
+    factorial i+1
+    -- Otro comentario 
+    factorial i-1
+    factorial i*2
+    factorial i/2
+    factorial (((((i+1)/2)+3)/2)%3)/(i+1)
+    resultado = i+resultado
+
+-- Esto es un comentario
+for jamon 4
+    factorial jamon+1
+    
