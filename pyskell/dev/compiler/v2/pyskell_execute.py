@@ -3,8 +3,9 @@ from pyskell_utils import *
 # from pyskell_special_commands import special_commands
 import re
 import shlex
+from pyskell_shared_global import variables
 
-variables = []
+# variables = []
 
 def process_command(command):
     # Patrón regex para identificar listas y tuplas en la cadena de comando
@@ -27,9 +28,7 @@ def is_pll_function(command):
     comando_split = None
     try:
         comando_split = process_command(command)
-        print("SPLIT", comando_split)
     except Exception as e:
-        print("LA CONCHA DE TU MADRE")
         print(f"Error SPLITEANDO: {e}.")
         return "continue"
     
@@ -47,12 +46,11 @@ def is_pll_function(command):
     return False
 
 def get_variable(hash):
-    global variables
-    return variables[[variable["hash"] for variable in variables].index(hash)]
+    # global variables
+    
+    return variables[[variable["hash"] for variable in variables].index(hash)] if hash in [variable["hash"] for variable in variables] else None
 
 def handle_assignation(command):
-    global variables
-    
     command_split = command.split('=')
     variable_hash = command_split[0].strip()
     variable_to_assign = get_variable(variable_hash)
@@ -65,19 +63,19 @@ def handle_assignation(command):
     print(f"{name} :: {type(variable_value).__name__} = {variable_value}")
 
 def replace_variables_in_command(command):
-    global variables
+    # global variables
     if not len(variables) > 0:
         return command
     
     comando = ""
     for variable in variables:
         comando = command.replace(variable["hash"], str(variable["value"]))
-        print("comando reemplazado", comando)
 
     return comando
 
 def run_command(comando, with_return=False):
     from pyskell_special_commands import special_commands
+    
     if '=' in comando:
         return handle_assignation(comando)
     
@@ -87,7 +85,6 @@ def run_command(comando, with_return=False):
     try:
         comando_split = process_command(comando)
     except Exception as e:
-        print("LA CONCHA DE TU MADRE")
         print(f"Error SPLITEANDO: {e}.")
         return "continue"
     

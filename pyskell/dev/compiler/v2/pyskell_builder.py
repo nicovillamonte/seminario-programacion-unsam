@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+from pyskell_shared_global import variables
 
 def read_file(file):
     lines = []
@@ -128,15 +129,12 @@ def throw_duplicates(elements):
     return new_elements
 
 def build(file, print_log=False):
-    global variables
-    
     lines = read_file(file)
     
     grouped_lines = group_lines(lines)
     print_if(print_log, 'grouped_lines: ', grouped_lines)
     expanded_lines = handle_for_loop_with_complex_evaluation(grouped_lines)
     expanded_lines = handle_for_loop_with_cleaning(expanded_lines)
-    # Remove empty lines
     print_if(print_log, 'expanded_lines: ', expanded_lines)
     
     # print_if(print_log, "\ncodigo")
@@ -148,7 +146,6 @@ def build(file, print_log=False):
     print_if(print_log, 'rpll_lines: ', rpll_lines)
     print_if(print_log, 'calculable_lines: ', calculable_lines)
     
-    variables = []  # Usamos una lista en lugar de un conjunto
     for i in calculable_lines:
         [left_side, _] = i.split('=')
         variables.append({

@@ -349,6 +349,8 @@ def is_pll_function(command):
 def handle_assignation(command):
     global variables
     
+    print("VARIABLES", variables)
+    
     command_split = command.split('=')
     variable_hash = command_split[0].strip()
     variable_to_assign = get_variable(variable_hash)
