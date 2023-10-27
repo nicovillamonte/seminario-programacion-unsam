@@ -48,10 +48,22 @@ def show_help():
 #         print(f"Function '{function}' not recognized or callable.")
 
 def return_type_pyskell(function):
-    function, arguments = function[0], function[1:]
+    # print("function[1:]", function[1:])
+    function_name, arguments = function[0], function[1:]
     
-    function = search_pyskell_function_by_name(function)
-    command_string = f"{function.name} {' '.join(arguments)}"
+    command_string = f"{function_name} {' '.join(arguments)}"
+    
+    comando_split = None
+    try:
+        comando_split = process_command(command_string)
+    except Exception as e:
+        print(f"Error: {e}.")
+        return
+    
+    arguments = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
+    function_name = comando_split[0]
+    
+    function = search_pyskell_function_by_name(function_name)
     
     if function is not None and function.calleable():
         function.set_command(command_string)
@@ -66,15 +78,11 @@ def return_type_pyskell(function):
             resultado.set_command(command_string)
             # Aplica los argumentos restantes uno por uno
             resultado_final = pyskellRunProccess(apply_args, resultado, arguments[1:])
-            
-            if isinstance(resultado, pyskell_number):
-                print(f"({command_string}) :: {pyskell_number.type_name()}")
-            
             print(resultado_final.__str__() if isinstance(resultado_final, PyskellFunction) else f"({command_string}) :: {type(resultado_final).__name__}" )
         else:
             print(f"({command_string}) ::", resultado.__str__() if isinstance(resultado, PyskellFunction) else type(resultado).__name__)
     else:
-        print(f"Function '{function}' not recognized or callable.")
+        print(f"Function '{function_name}' not recognized or callable.")
 
 special_commands = {
     '!c': clear_screen,

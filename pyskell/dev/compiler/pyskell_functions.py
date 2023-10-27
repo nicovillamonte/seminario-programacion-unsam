@@ -41,7 +41,7 @@ def sumOf_pyskell(arr):
     if len(arr) == 0:
         return 0
     else:
-        return number(number(arr[0]) + sumOf_pyskell(arr[1:]))
+        return number(number(arr[0]) + number(sumOf_pyskell(arr[1:])))
 sumOf = PyskellFunction('sumOf', sumOf_pyskell, type=(list, number))
 
 def isStrEq_pyskell(s):
@@ -55,8 +55,8 @@ def helloWorld_pyskell():
 helloWorld = PyskellFunction('helloWorld', helloWorld_pyskell, type=(str))
 
 def fibonacci_pyskell(n):
-    n = int(n)
-    return fibonacci_pyskell(n-1) + fibonacci_pyskell(n-2) if n > 1 else n
-fibonacci = PyskellFunction('fibonacci', fibonacci_pyskell, type=(int, int))
+    n = number(n)
+    return number(fibonacci_pyskell(n-1) + fibonacci_pyskell(n-2) if n > 1 else n)
+fibonacci = PyskellFunction('fibonacci', fibonacci_pyskell, type=(number, number))
 
 pyskell_exported_functions = [factorial, doble, suma, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]

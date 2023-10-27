@@ -196,10 +196,22 @@ def show_help():
         
 
 def return_type_pyskell(function):
-    function, arguments = function[0], function[1:]
+    # print("function[1:]", function[1:])
+    function_name, arguments = function[0], function[1:]
     
-    function = search_pyskell_function_by_name(function)
-    command_string = f"{function.name} {' '.join(arguments)}"
+    command_string = f"{function_name} {' '.join(arguments)}"
+    
+    comando_split = None
+    try:
+        comando_split = process_command(command_string)
+    except Exception as e:
+        print(f"Error: {e}.")
+        return
+    
+    arguments = [safe_eval(arg) if is_valid_list_or_tuple(arg) else arg for arg in comando_split[1:]]
+    function_name = comando_split[0]
+    
+    function = search_pyskell_function_by_name(function_name)
     
     if function is not None and function.calleable():
         function.set_command(command_string)
@@ -218,7 +230,7 @@ def return_type_pyskell(function):
         else:
             print(f"({command_string}) ::", resultado.__str__() if isinstance(resultado, PyskellFunction) else type(resultado).__name__)
     else:
-        print(f"Function '{function}' not recognized or callable.")
+        print(f"Function '{function_name}' not recognized or callable.")
     
 
 special_commands = {
@@ -247,16 +259,14 @@ def pyskellRunProccess(function, *args):
     num_args = function.func.__code__.co_argcount if isinstance(function, PyskellFunction) else function.__code__.co_argcount
     
     if len(args) < num_args:
-        print("pyskellRunProccess ret func", function)
         return function
     try:
-        # print("func type", function)
-        print("pyskellRunProccess ret func()", function(*args))
         return function(*args)
     except ValueError:
         return "Error: uno o más argumentos no son números válidos."
     except Exception as e:
-        return f"Error: {e}.\n Error Name: {type(e).__name__}"
+        return f"Error: {e}."
+        # print(f"\n Error Name: {type(e).__name__}")
 
 def is_valid_list_or_tuple(s):
     return (s.startswith('[') and s.endswith(']')) or (s.startswith('(') and s.endswith(')'))

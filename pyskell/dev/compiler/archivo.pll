@@ -1,7 +1,10 @@
--- resultado = factorial 3
--- comida = doble 2
-
--- factorial resultado
-
 factorial
-ftype factorial 2
+doble
+suma
+upperCase
+lowerCase
+length
+sumOf
+isStrEq
+helloWorld
+fibonacci
