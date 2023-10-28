@@ -1,6 +1,1 @@
-hola = 3
-factorial (hola+2+hola)/2
-
-for i 3
-    factorial i+hola
-    factorial 2
+suma ?num ?num

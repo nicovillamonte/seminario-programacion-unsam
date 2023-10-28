@@ -3,7 +3,7 @@ from pyskell_utils import *
 # from pyskell_special_commands import special_commands
 import re
 import shlex
-from pyskell_shared_global import variables
+from pyskell_shared_global import variables, variables_inputs
 # from pyskell_builder import handle_line_evaluation
 
 # variables = []
@@ -91,22 +91,94 @@ def replace_variables_in_command(command):
 def evaluate_arithmetic_expressions(command):
     command, _ = command
     command_split = command.split(' ')
+    command_split[0], command_split[1] = command_split[0], ' '.join(command_split[1:])
     try:
-        return f"{command_split[0]} {str(eval(command_split[1]))}"
+        if any(op in command_split[1] for op in ['+', '-', '*', '/', '%', '(', ')']):
+            return f"{command_split[0]} {str(eval(command_split[1]))}"
+        else: return command
     except:
         return command
+
+def tokenize_command_with_incognit(command):
+    tokens = []
+    in_quotes = False
+    current_token = []
+    for char in command:
+        if char == '"':
+            in_quotes = not in_quotes
+            current_token.append(char)
+        elif char == ' ':
+            if in_quotes:
+                current_token.append(char)
+            else:
+                tokens.append(''.join(current_token))
+                current_token = []
+        else:
+            current_token.append(char)
+    if current_token:
+        tokens.append(''.join(current_token))
+    return tokens
 
 def run_command(comando, with_return=False):
     from pyskell_special_commands import special_commands
     
+    # Separar el comando en tokens, teniendo en cuenta las comillas
+    incogint_tokenated = tokenize_command_with_incognit(comando)
+    
+    for incognit in incogint_tokenated:
+        if incognit.startswith('?'):
+            prompt = incognit[1:][1:-1] if incognit[1:].startswith('"') else incognit[1:]
+            prompt = (prompt if len(prompt.strip()) > 0 else "?") + (":" if not incognit[1:].startswith('"') else "")
+            
+            # if exists prompt in variables_inputs then use it, else ask for input
+            user_input = None
+            for variable_input in variables_inputs:
+                if variable_input["prompt"] == prompt:
+                    user_input = variable_input["value"]
+                    break
+            if user_input is None:
+                user_input = input(prompt + ' ')
+            
+            comando = comando.replace(incognit, user_input)
+    
+            # Save variable for later replacement
+            variables_inputs.append({"prompt": prompt, "value": user_input})
+    
+    
+    # tokens = re.findall(r'\".*?\"(?=\s|$)|\S+', comando)
+    
+    # for i, token in enumerate(tokens):
+    #     if token.startswith('?'):
+    #         prompt = token[1:]
+    #         # Quitar las comillas del prompt si las hay
+    #         prompt = prompt[1:-1] if prompt.startswith('"') else prompt
+    #         prompt = prompt if len(prompt.strip()) > 0 else "?"
+    #         user_input = input(prompt + ' ')
+    #         tokens[i] = user_input
+            
+    # # Unir los tokens de nuevo en una única cadena
+    # comando = ' '.join(tokens)
+    
+    # if '?' in comando:
+    #     tokens = comando.split(' ')
+    #     for i, token in enumerate(tokens):
+    #         if token.startswith('?'):
+    #             prompt = token[1:] if len(token) > 1 else "?:"
+    #             user_input = input(prompt + ' ')
+    #             tokens[i] = user_input
+    #     comando = ' '.join(tokens)
+    
     if '=' in comando:
         return handle_assignation(comando)
     
-    comando = replace_variables_in_command(comando)
-    
-    comando, _ = replace_variables_in_command(comando)
-    
-    comando = evaluate_arithmetic_expressions(comando)
+    # Si tiene variables, de formato %...% las reemplaza por su valor
+    are_variables = re.compile(r'%.*?%')
+    if are_variables.search(comando):
+        comando = replace_variables_in_command(comando)
+        
+        comando, _ = replace_variables_in_command(comando)
+        
+        comando = evaluate_arithmetic_expressions(comando)
     
     comando_split = None
     try:
