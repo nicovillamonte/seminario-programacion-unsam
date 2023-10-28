@@ -1,2 +1,5 @@
 hola = 4
 factorial hola
+
+for i 3
+    factorial i+1

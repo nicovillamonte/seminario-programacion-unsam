@@ -4,6 +4,7 @@ from pyskell_utils import *
 import re
 import shlex
 from pyskell_shared_global import variables
+# from pyskell_builder import handle_line_evaluation
 
 # variables = []
 
@@ -62,16 +63,38 @@ def handle_assignation(command):
     
     print(f"{name} :: {type(variable_value).__name__} = {variable_value}")
 
-def replace_variables_in_command(command):
-    # global variables
-    if not len(variables) > 0:
-        return command
+# def replace_variables_in_command(command):
+#     if not len(variables) > 0:
+#         return command
     
-    comando = ""
-    for variable in variables:
-        comando = command.replace(variable["hash"], str(variable["value"]))
+#     comando = command
+    
+#     for variable in variables:
+#         comando = comando.replace(variable["hash"], str(variable["value"])) if variable["hash"] in comando else comando
 
-    return comando
+#     return comando
+
+def replace_variables_in_command(command):
+    if not len(variables) > 0:
+        return command, False
+    
+    comando = command
+    replaced = False
+    
+    for variable in variables:
+        if variable["hash"] in comando:
+            comando = comando.replace(variable["hash"], str(variable["value"]))
+            replaced = True
+
+    return comando, replaced
+
+def evaluate_arithmetic_expressions(command):
+    command, _ = command
+    command_split = command.split(' ')
+    try:
+        return f"{command_split[0]} {str(eval(command_split[1]))}"
+    except:
+        return command
 
 def run_command(comando, with_return=False):
     from pyskell_special_commands import special_commands
@@ -80,6 +103,10 @@ def run_command(comando, with_return=False):
         return handle_assignation(comando)
     
     comando = replace_variables_in_command(comando)
+    
+    comando, _ = replace_variables_in_command(comando)
+    
+    comando = evaluate_arithmetic_expressions(comando)
     
     comando_split = None
     try:
@@ -136,4 +163,5 @@ def run_pll(file):
             lines[i] = line.replace('\n', '')
     
     for comando in lines:
+        # print("Running:", comando)
         run_command(comando)

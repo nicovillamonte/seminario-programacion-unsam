@@ -1,6 +1,5 @@
 import sys
 import re
-from sympy import sympify
 import os
 import time
 from multiprocessing import Process
