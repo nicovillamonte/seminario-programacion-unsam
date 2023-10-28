@@ -127,3 +127,11 @@ Input for the first number: 3
 num2: 3
 6.0
 ```
+
+You can define one incognit and use it in several functions.
+
+```
+sum ?num ?num
+```
+
+This will only ask the user for one incognit and will use it in the whole program.
