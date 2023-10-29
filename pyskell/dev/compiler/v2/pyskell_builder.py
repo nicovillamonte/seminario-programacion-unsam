@@ -36,39 +36,59 @@ def parse_lines(lines, start=0, level=0, is_top_level=True):
 def group_lines(lines):
     return parse_lines(lines)
 
-def handle_for_loop_with_complex_evaluation_recursive(grouped_lines):
+
+def to_parallel_rpll_block(block):
+    pass
+    
+def to_for_rpll_block(block):
+    command, block = block
+    
+    _, var_name, repeat_count = command.split()
+    repeat_count = int(repeat_count)
+    
+    output = []
+    for i in range(repeat_count):
+        # Deep copy the original block so that we don't modify it during replacements
+        copied_block = [item.copy() if isinstance(item, list) else item for item in block]
+        
+        # Expand the copied block recursively
+        expanded_block = to_rpll_block(copied_block)
+        
+        # Replace occurrences of the loop variable with its current value
+        regex = re.compile(r'\b' + re.escape(var_name) + r'\b')
+        for j, line in enumerate(expanded_block):
+            if isinstance(line, str):
+                expanded_block[j] = regex.sub(str(i), line)
+            elif isinstance(line, tuple):
+                inner_command, inner_block = line
+                expanded_block[j] = (regex.sub(str(i), inner_command), inner_block)
+
+        output.extend(expanded_block)
+    
+    return output
+
+def handle_tuple_block(block):
+    options = {
+        'parallel': to_parallel_rpll_block,
+        'for': to_for_rpll_block,
+    }
+    return options.get(block[0].split()[0], lambda: None)(block)
+
+def to_rpll_block(grouped_lines):
     expanded_lines = []
-
-    for item in grouped_lines:
-        if isinstance(item, tuple):
-            command, block = item
-            if command.startswith("for"):
-                _, var_name, repeat_count = command.split()
-                repeat_count = int(repeat_count)
-                
-                for i in range(repeat_count):
-                    # Deep copy the original block so that we don't modify it during replacements
-                    copied_block = [item.copy() if isinstance(item, list) else item for item in block]
-                    
-                    # Expand the copied block recursively
-                    expanded_block = handle_for_loop_with_complex_evaluation_recursive(copied_block)
-                    
-                    # Replace occurrences of the loop variable with its current value
-                    regex = re.compile(r'\b' + re.escape(var_name) + r'\b')
-                    for j, line in enumerate(expanded_block):
-                        if isinstance(line, str):
-                            expanded_block[j] = regex.sub(str(i), line)
-                        elif isinstance(line, tuple):
-                            inner_command, inner_block = line
-                            expanded_block[j] = (regex.sub(str(i), inner_command), inner_block)
-
-                    expanded_lines.extend(expanded_block)
-            else:
-                expanded_lines.append((command, handle_for_loop_with_complex_evaluation_recursive(block)))
+    
+    output = []
+    for block in grouped_lines:
+        if isinstance(block,tuple):
+            output.extend(
+                handle_tuple_block(block)
+            )
         else:
-            expanded_lines.append(item)
-
-    return expanded_lines
+            output.append(block)
+    
+    if any(isinstance(x, tuple) for x in output):
+        output = to_rpll_block(output)
+    return output
 
 def handle_for_loop_with_complex_evaluation(grouped_lines):
     expanded_lines = []
@@ -108,7 +128,7 @@ def handle_for_loop_with_complex_evaluation(grouped_lines):
     return expanded_lines
 
 def handle_for_loop_with_cleaning(grouped_lines):
-    expanded_lines = handle_for_loop_with_complex_evaluation_recursive(grouped_lines)
+    expanded_lines = to_rpll_block(grouped_lines)
     
     # Remove empty lines and lines starting with "--"
     cleaned_lines = [line for line in expanded_lines if line.strip() and not line.startswith("--")]
@@ -182,13 +202,19 @@ def throw_duplicates(elements):
 
     return new_elements
 
+def handle_parallel(lines):
+    return lines
+
 def build(file, print_log=False):
     lines = read_file(file)
     
     grouped_lines = group_lines(lines)
     print_if(print_log, 'grouped_lines: ', grouped_lines)
-    expanded_lines = handle_for_loop_with_complex_evaluation_recursive(grouped_lines)
-    expanded_lines = handle_for_loop_with_cleaning(expanded_lines)
+    # Handle for loops.
+    expanded_lines = to_rpll_block(grouped_lines)
+    print_if(print_log, 'handle for loops in expanded_lines: ', expanded_lines)
+    # Handle parallel.
+    expanded_lines = handle_parallel(expanded_lines)
     print_if(print_log, 'expanded_lines: ', expanded_lines)
     
     expanded_lines = post_process_expanded_lines(expanded_lines)

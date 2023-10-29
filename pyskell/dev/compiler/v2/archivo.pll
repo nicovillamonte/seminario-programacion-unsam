@@ -1,6 +1,5 @@
 doble 2
-paralell
-    doble 3
-    for i 3
-        doble i+1
-factorial 3
+hola = suma 3 6
+for i 3
+    suma i hola
+doble 2
