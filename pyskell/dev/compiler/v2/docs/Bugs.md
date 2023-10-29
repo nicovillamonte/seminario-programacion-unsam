@@ -3,6 +3,7 @@
 Futuros:
 - Arreglar espaciado de tabulacion (Actualmente solo acepta 4)
 - Hacer que se puedan hacer fors adentro de fors.
+- Cuando se ejecuta con carpetas internas no funciona.
 
 ## Bug 1: Asignaciones a funciones con parametros no devuelven lo que deberian
 

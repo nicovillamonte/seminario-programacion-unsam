@@ -6,6 +6,12 @@ Orden de prioridad:
 Sin prioridad:
 - [Asignacion parcial](#asignacion-parcial)
 
+Otros:
+- No imprimir las lineas de asignacion al menos que se active el flag `--print-assigns`
+- Hacer un help de como utilizar el comando pyskell
+- Agregarle al `for` los parametros de `step` y `start` o `in` para recorrer una lista
+- Concurrencia. Ademas del bloque PARALELL, agregarle un bloque CONCURRENT, lo unico que cambiaria en la implementacion es el uso de Threads en vez de Proccess.
+
 ## Paralelismo por secciones
 
 - [ ] Listo
@@ -93,6 +99,57 @@ Luego, teniendo en cuenta que el builder solamente se encarga de agrupar las lin
 ['doble 2',  '__p', 'doble 3', 'doble 3', 'doble 1', 'doble 2', 'doble 3', '__ep', 'factorial 3']
 ```
 
+
+### Guardado en el rpll
+
+Si tenemos un codigo asi
+
+```
+doble 2
+paralell
+    doble 3
+    for i 3
+        doble i+1
+factorial 3
+```
+
+Vamos a tener esto en el group
+
+```
+['doble 2', ('paralell', ['doble 3', ('for i 3', ['doble i+1'])]), 'factorial 3']
+```
+
+De alguna manera, esto tiene que ser guardado en el rpll, para que luego el executer lo interprete. La idea es que se guarde asi:
+
+```
+doble 2
+$id$:pl
+doble 3
+doble 1
+doble 2
+doble 3
+$id$;pl
+factorial 3
+```
+
+El `id` representa un hash unico que es atribuido tanto a su inicio como su final, para que el executer sepa que es un bloque de paralelismo. El `:pl` representa que es un bloque de paralelismo, y el `;pl` representa el final del bloque de paralelismo.
+
+### Bloques de paralelismo anidados
+
+```
+doble 2
+paralell
+    paralell
+        doble 3
+        doble 4
+    paralell
+        doble 1
+        doble 176
+factorial 3
+```
+
+Algo asi deberia ser posible. Lo que haria que ambos paralell se ejecuten en paralelo y, a su vez, estos creen otro paralelismo para ejecutar sus comandos. Lo que haria que cuando uno de los dos procesos termine, el otro deba esperarlo para seguir por fuera del paralell.
+
 ## Asignacion parcial
 
 - [ ] Listo
@@ -103,6 +160,15 @@ res 5
 ```
 
 Y que `res 5` devuelva `num+5` (o sea, que se pueda usar como una funcion), ya que en realidad las asignaciones son funciones.
+
+Esto incluye que si yo tengo esto
+
+```
+res = suma 3 54
+res
+```
+
+Devuelva `57`.
 
 ## Agregarle al `for` los parametros de `step` y `start`
 

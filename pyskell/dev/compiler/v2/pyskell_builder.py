@@ -116,7 +116,9 @@ def handle_for_loop_with_cleaning(grouped_lines):
     return cleaned_lines
 
 def generate_rpll(file, expanded_lines):
-    file_name = file.replace('.pll','.rpll').replace('.\\','')
+    # clear the bar before if exists, for example './examples\\0.rpll' to '0.rpll'
+    file_name = os.path.basename(file)
+    file_name = file_name.replace('.pll','.rpll').replace('.\\','')
     # si la carpeta dist no existe, crearla
     try:
         os.stat('dist')
