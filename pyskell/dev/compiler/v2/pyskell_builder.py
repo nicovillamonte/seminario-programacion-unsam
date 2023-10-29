@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import uuid
 from pyskell_shared_global import variables
 from pyskell_utils import print_if
 
@@ -36,9 +37,9 @@ def parse_lines(lines, start=0, level=0, is_top_level=True):
 def group_lines(lines):
     return parse_lines(lines)
 
-
 def to_parallel_rpll_block(block):
-    pass
+    unique_id = str(abs(hash(uuid.uuid4())))
+    return [f'_${unique_id}$:pl'] + block[1] + [f'_${unique_id}$;pl']
     
 def to_for_rpll_block(block):
     command, block = block
@@ -75,8 +76,6 @@ def handle_tuple_block(block):
     return options.get(block[0].split()[0], lambda: None)(block)
 
 def to_rpll_block(grouped_lines):
-    expanded_lines = []
-    
     output = []
     for block in grouped_lines:
         if isinstance(block,tuple):

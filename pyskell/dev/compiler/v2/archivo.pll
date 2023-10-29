@@ -1,5 +1,9 @@
 doble 2
-hola = suma 3 6
-for i 3
-    suma i hola
-doble 2
+parallel
+    parallel
+        doble 1
+        doble 2
+    parallel
+        doble 3
+        doble 4
+factorial 3
