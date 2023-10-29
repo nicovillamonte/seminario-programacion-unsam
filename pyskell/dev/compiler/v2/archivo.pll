@@ -1,6 +1,7 @@
-doble 2
-paralell
-    doble 3
-    for i 3
-        doble i+1
-factorial 3
+log "START the program"
+doble 3
+for i 3
+    for j 3
+        suma i j
+doble 4
+log "END."

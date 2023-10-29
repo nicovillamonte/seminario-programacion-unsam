@@ -1,10 +1,10 @@
 from pyskell_types import PyskellFunction, number
 
 # Función print (String -> String)
-def print_pyskell(s):
+def log_pyskell(s):
     s = str(s)
     return s
-print = PyskellFunction('print', print_pyskell, type=(str, str))
+log = PyskellFunction('log', log_pyskell, type=(str, str))
 
 # Función factorial (Number -> Number)
 def factorial_pyskell(n: number) -> number:
@@ -65,4 +65,4 @@ def fibonacci_pyskell(n):
     return number(fibonacci_pyskell(n-1) + fibonacci_pyskell(n-2) if n > 1 else n)
 fibonacci = PyskellFunction('fibonacci', fibonacci_pyskell, type=(number, number))
 
-pyskell_exported_functions = [print, factorial, doble, suma, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]
+pyskell_exported_functions = [log, factorial, doble, suma, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]
