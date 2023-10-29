@@ -1,5 +1,8 @@
 # Bugs a arreglar
 
+Importantes:
+- Arreglar asignaciones cuando se intenta ejecutar directo el archivo rpll.
+
 Futuros:
 - Arreglar espaciado de tabulacion (Actualmente solo acepta 4)
 - Hacer que se puedan hacer fors adentro de fors.
