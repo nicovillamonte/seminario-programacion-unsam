@@ -2,6 +2,7 @@ import os
 import sys
 import re
 from pyskell_shared_global import variables
+from pyskell_utils import print_if
 
 def read_file(file):
     lines = []
@@ -10,42 +11,64 @@ def read_file(file):
             lines.append(line.rstrip())
     return lines
 
-def print_if(condition, message, *args):
-    if condition:
-        print(message, *args)
+def count_leading_spaces(line):
+    return len(re.match(r'\s*', line).group())
+
+def parse_lines(lines, start=0, level=0, is_top_level=True):
+    output = []
+    i = start
+    while i < len(lines):
+        line = lines[i]
+        spaces = count_leading_spaces(line)
+        command = line.strip()
+        if spaces == level:
+            i += 1
+            nested = []
+            while i < len(lines) and count_leading_spaces(lines[i]) > level:
+                nested, i = parse_lines(lines, i, count_leading_spaces(lines[i]), is_top_level=False)
+            output.append((command, nested) if nested else command)
+        elif spaces < level:
+            return (output, i) if not is_top_level else output
+        else:
+            i += 1
+    return (output, i) if not is_top_level else output
 
 def group_lines(lines):
-    grouped_lines = []
-    parent_line = None
-    
-    for line in lines:
-        stripped_line = line.strip()
-        
-        is_indented = line.startswith('\t') or line.startswith('    ')
-        
-        if not is_indented:
-            if parent_line:
-                grouped_lines.append(parent_line)
-            
-            parent_line = (stripped_line, [])
-        else:
-            if parent_line:
-                parent_line[1].append(stripped_line)
-    
-    if parent_line:
-        grouped_lines.append(parent_line)
-    
-    flattened_grouped_lines = []
+    return parse_lines(lines)
+
+def handle_for_loop_with_complex_evaluation_recursive(grouped_lines):
+    expanded_lines = []
+
     for item in grouped_lines:
         if isinstance(item, tuple):
-            if item[1]:
-                flattened_grouped_lines.append(item)
+            command, block = item
+            if command.startswith("for"):
+                _, var_name, repeat_count = command.split()
+                repeat_count = int(repeat_count)
+                
+                for i in range(repeat_count):
+                    # Deep copy the original block so that we don't modify it during replacements
+                    copied_block = [item.copy() if isinstance(item, list) else item for item in block]
+                    
+                    # Expand the copied block recursively
+                    expanded_block = handle_for_loop_with_complex_evaluation_recursive(copied_block)
+                    
+                    # Replace occurrences of the loop variable with its current value
+                    regex = re.compile(r'\b' + re.escape(var_name) + r'\b')
+                    for j, line in enumerate(expanded_block):
+                        if isinstance(line, str):
+                            expanded_block[j] = regex.sub(str(i), line)
+                        elif isinstance(line, tuple):
+                            inner_command, inner_block = line
+                            expanded_block[j] = (regex.sub(str(i), inner_command), inner_block)
+
+                    expanded_lines.extend(expanded_block)
             else:
-                flattened_grouped_lines.append(item[0])
+                expanded_lines.append((command, handle_for_loop_with_complex_evaluation_recursive(block)))
         else:
-            flattened_grouped_lines.append(item)
-            
-    return flattened_grouped_lines
+            expanded_lines.append(item)
+
+    return expanded_lines
 
 def handle_for_loop_with_complex_evaluation(grouped_lines):
     expanded_lines = []
@@ -85,7 +108,7 @@ def handle_for_loop_with_complex_evaluation(grouped_lines):
     return expanded_lines
 
 def handle_for_loop_with_cleaning(grouped_lines):
-    expanded_lines = handle_for_loop_with_complex_evaluation(grouped_lines)
+    expanded_lines = handle_for_loop_with_complex_evaluation_recursive(grouped_lines)
     
     # Remove empty lines and lines starting with "--"
     cleaned_lines = [line for line in expanded_lines if line.strip() and not line.startswith("--")]
@@ -105,6 +128,35 @@ def generate_rpll(file, expanded_lines):
             f.write(line + '\n') if i + 1 != len(expanded_lines) else f.write(line)
     
     return f"./dist/{file_name}"
+
+def evaluate_expressions_in_line(line):
+    components = line.split()
+    new_components = []
+    
+    for comp in components:
+        try:
+            # If the component is an expression, try to evaluate it
+            new_component = eval(comp)
+        except:
+            # If evaluation fails, keep the original component
+            new_component = comp
+        
+        new_components.append(str(new_component))
+        
+    return ' '.join(new_components)
+
+def post_process_expanded_lines(expanded_lines):
+    new_lines = []
+    for line in expanded_lines:
+        if isinstance(line, str):
+            new_lines.append(evaluate_expressions_in_line(line))
+        else:
+            # If it's a tuple (e.g., a for loop or other block), 
+            # process the inner lines recursively
+            command, block = line
+            new_block = post_process_expanded_lines(block)
+            new_lines.append((command, new_block))
+    return new_lines
 
 def separe_rpll_and_calculable_lines(expanded_lines):
     rpll_lines = []
@@ -133,13 +185,11 @@ def build(file, print_log=False):
     
     grouped_lines = group_lines(lines)
     print_if(print_log, 'grouped_lines: ', grouped_lines)
-    expanded_lines = handle_for_loop_with_complex_evaluation(grouped_lines)
+    expanded_lines = handle_for_loop_with_complex_evaluation_recursive(grouped_lines)
     expanded_lines = handle_for_loop_with_cleaning(expanded_lines)
     print_if(print_log, 'expanded_lines: ', expanded_lines)
     
-    # print_if(print_log, "\ncodigo")
-    # for i in expanded_lines:
-    #     print_if(print_log, i)
+    expanded_lines = post_process_expanded_lines(expanded_lines)
     
     rpll_lines, calculable_lines = separe_rpll_and_calculable_lines(expanded_lines)
     
@@ -160,16 +210,9 @@ def build(file, print_log=False):
     for i, line in enumerate(expanded_lines):
         for variable in variables:
             if variable["name"] in line:
-                expanded_lines[i] = line.replace(variable["name"], variable["hash"])
+                expanded_lines[i] = expanded_lines[i].replace(variable["name"], variable["hash"])
+    
+    expanded_lines[i] = line
     
         
     return generate_rpll(file, expanded_lines)
-
-# def main():
-#     global variables
-    
-#     file = sys.argv[1]
-#     build_file = build(file=file, print_log=False)
-
-# if __name__ == "__main__":
-#     main()

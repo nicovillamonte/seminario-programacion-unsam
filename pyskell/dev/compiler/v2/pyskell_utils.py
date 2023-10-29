@@ -42,3 +42,7 @@ def safe_eval(s):
         return eval(s, {"__builtins__": None}, {})
     except Exception:
         return s
+
+def print_if(condition, message, *args):
+    if condition:
+        print(message, *args)

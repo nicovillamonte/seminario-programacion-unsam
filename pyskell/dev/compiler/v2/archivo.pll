@@ -1,5 +1,6 @@
-suma ?num ?num
+doble 2
 paralell
-    for i 5
-        factorial 3
-end_paralell
+    doble 3
+    for i 3
+        doble i+1
+factorial 3
