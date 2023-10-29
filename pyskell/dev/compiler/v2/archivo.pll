@@ -1,8 +1,9 @@
 doble 2
+hola = suma 3 2
 parallel
     parallel
-        doble 1
-        doble 2
+        for i 5
+            suma i hola
     parallel
         doble 3
         doble 4

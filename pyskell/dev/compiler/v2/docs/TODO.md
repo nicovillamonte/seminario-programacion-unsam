@@ -2,6 +2,7 @@
 
 Orden de prioridad:
 - [Paralelismo por secciones](#paralelismo-por-secciones)
+- [Agregar semaforos](#agregar-semaforos)
 
 Sin prioridad:
 - [Asignacion parcial](#asignacion-parcial)
@@ -149,6 +150,27 @@ factorial 3
 ```
 
 Algo asi deberia ser posible. Lo que haria que ambos paralell se ejecuten en paralelo y, a su vez, estos creen otro paralelismo para ejecutar sus comandos. Lo que haria que cuando uno de los dos procesos termine, el otro deba esperarlo para seguir por fuera del paralell.
+
+## Agregar semaforos
+
+```
+doble 2
+hola = suma 3 3
+paralell
+    paralell
+        doble 3
+        sem nombreSemaforo
+            hola = 3
+        doble 4
+    paralell
+        doble 1
+        sem nombreSemaforo
+            hola = 4
+        doble 176
+factorial 3
+```
+
+
 
 ## Asignacion parcial
 
