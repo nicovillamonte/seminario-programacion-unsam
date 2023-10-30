@@ -130,11 +130,50 @@ def obtain_id_from_prebuild_command(command):
         return id
     return False
 
+def get_block_from_prebuild_command(id):
+    global loaded_program
+    command_block = []
+    block_started = False
+    
+    for line in loaded_program:
+        start_match = re.match(rf'_\${id}\$:.*', line)
+        
+        end_match = re.match(rf'_\${id}\$;.*', line)
+        if start_match:
+            block_started = True
+            continue
+        
+        if end_match:
+            break
+        
+        if block_started:
+            command_block.append(line)
+            
+    return command_block if block_started and end_match else None
+    
+
 def run_parallel_block(block):
-    # Create a new thread (Proccess) for each command
+    # Create a new thread (Proccess) for each command 
+    
+    # Detectar si se abre un bloque
+    # Si es asi obtener el bloque entero y mandarlo a run_parallel_block recursivamente
+    # Sino crear un Thread para cada comando
+    code = []
+    for command in block:
+        if command.startswith('_$'):
+            id = obtain_id_from_prebuild_command(command)
+            block = get_block_from_prebuild_command(id)
+            run_parallel_block(block)
+            # TODO: Falta que se saltee todo el bloque al seguir con el for.
+        else:
+            code.append(command)
+    
     command_proccesses = [
-        Process(target=run_command, args=(command,)) for command in block
+        Process(target=run_command, args=(command,)) for command in block if not command.startswith('--')
     ]
+    
+    # TODO: Hacer los procesos de los bloques que tienen como target en vez de run_command a run_pll con el nuevo programa (bloque)
+    # command_proccesses.extend([ Process()])
     
     # Start all the threads (Proccesses)
     for proccess in command_proccesses:
@@ -269,13 +308,16 @@ def run_command(comando, with_return=False):
         else:
             print(f"Function '{funcion_nombre}' not recognized or callable.")
 
-def run_pll(file):
+def run_pll(file, program=[]):
     global loaded_program
     
-    with open(file, 'r') as f:
-        loaded_program = f.readlines()
-        for i, line in enumerate(loaded_program):
-            loaded_program[i] = line.replace('\n', '')
+    if len(program) > 0:
+        with open(file, 'r') as f:
+            loaded_program = f.readlines()
+            for i, line in enumerate(loaded_program):
+                loaded_program[i] = line.replace('\n', '')
+    else:
+        loaded_program = program
     
     for index_command in range(len(loaded_program)):
         try:
