@@ -1,6 +1,10 @@
 # TODO - Pyskell
 
+Proximo a hacer
+- [ ] Mejorar el codigo para que en vez de comentarlo tenga una lista de comandos ya corridos en paralelo para que no se vuelvan a correr.
+
 Orden de prioridad:
+- [Manejo de archivos](#manejo-de-archivos)
 - [Paralelismo por secciones](#paralelismo-por-secciones)
 - [Agregar semaforos](#agregar-semaforos)
 
@@ -12,6 +16,47 @@ Otros:
 - Hacer un help de como utilizar el comando pyskell
 - Agregarle al `for` los parametros de `step` y `start` o `in` para recorrer una lista
 - Concurrencia. Ademas del bloque PARALELL, agregarle un bloque CONCURRENT, lo unico que cambiaria en la implementacion es el uso de Threads en vez de Proccess.
+
+## Manejo de archivos
+
+- [ ] Listo
+
+Poder cargar archivos excell con un comando `load`, obtener y modificar sus celdas.
+
+Otra opcion es cargar el archivo con load para todo un bloque de codigo, y que se pueda acceder y modificar en la misma linea que se hace una operacion, por ejemplo.
+
+```
+load archivo.xlsx
+factorial 2 <=> A1
+```
+
+Tambien que se pueda utilizar la propia celda como parametro de una funcion, por ejemplo.
+
+```
+load archivo.xlsx
+facorial _/2 <=> A1
+```
+
+el simbolo `_` representa el valor de la celda actual, y el simbolo `<=>` representa que el resultado de la operacion se guarde en la celda. Es un ida y vuelta.
+
+Tambien deberia ser posible utilizar el valor de alguna celda, pero sin modificarla, por ejemplo.
+
+```
+load archivo.xlsx
+variable = factorial _ => A1
+```
+
+Otra cosa que se deberia poder hacer es recorrer las filas y columnas de un archivo, por ejemplo.
+
+```
+load archivo.xlsx
+
+for i 10
+    for j 10
+        factorial _ <=> i.j
+```
+
+Siendo i la letra y j el numero de la columna. Pero internamente el numero se convierte en la letra.
 
 ## Paralelismo por secciones
 

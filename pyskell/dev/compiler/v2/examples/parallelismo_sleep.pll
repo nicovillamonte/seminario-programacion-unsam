@@ -1,0 +1,6 @@
+doble 5
+parallel
+    sleep 3
+    sleep 4
+    sleep 3
+doble 6

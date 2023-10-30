@@ -65,4 +65,10 @@ def fibonacci_pyskell(n):
     return number(fibonacci_pyskell(n-1) + fibonacci_pyskell(n-2) if n > 1 else n)
 fibonacci = PyskellFunction('fibonacci', fibonacci_pyskell, type=(number, number))
 
-pyskell_exported_functions = [log, factorial, doble, suma, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]
+def sleep_pyskell(n):
+    import time
+    time.sleep(int(n))
+    return n
+sleep = PyskellFunction('sleep', sleep_pyskell, type=(int, int))
+
+pyskell_exported_functions = [sleep, log, factorial, doble, suma, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]

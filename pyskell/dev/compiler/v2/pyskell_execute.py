@@ -1,5 +1,6 @@
 from pyskell_types import PyskellFunction
 from pyskell_utils import *
+from multiprocessing import Process
 # from pyskell_special_commands import special_commands
 import re
 import shlex
@@ -7,6 +8,7 @@ from pyskell_shared_global import variables, variables_inputs
 # from pyskell_builder import handle_line_evaluation
 
 # variables = []
+loaded_program = []
 
 def process_command(command):
     # Patrón regex para identificar listas y tuplas en la cadena de comando
@@ -119,8 +121,72 @@ def tokenize_command_with_incognit(command):
         tokens.append(''.join(current_token))
     return tokens
 
+def obtain_id_from_prebuild_command(command):
+    regex = re.compile(r"[_$][a-zA-Z0-9]+[$][:;]")
+    match = regex.search(command)
+    if match:
+        id = match.group(0)
+        id = id[1:][:-2]
+        return id
+    return False
+
+def run_parallel_block(block):
+    # Create a new thread (Proccess) for each command
+    command_proccesses = [
+        Process(target=run_command, args=(command,)) for command in block
+    ]
+    
+    # Start all the threads (Proccesses)
+    for proccess in command_proccesses:
+        proccess.start()
+    
+    # Wait for all the threads (Proccesses) to finish
+    for proccess in command_proccesses:
+        proccess.join()
+
+def handle_parallel_block(command):
+    global loaded_program
+    
+    prebuild_command_id = obtain_id_from_prebuild_command(command)
+    
+    line_index = loaded_program.index(command)
+    
+    parallel_block = []
+    
+    new_loaded_program = loaded_program
+    new_loaded_program[line_index] = "-- " + new_loaded_program[line_index]
+    for i, line in enumerate(loaded_program[line_index+1:]):
+        new_loaded_program[line_index+i+1] = "-- " + new_loaded_program[line_index+i+1]
+        if obtain_id_from_prebuild_command(line) == prebuild_command_id:
+            break
+        else:
+            parallel_block.append(line)
+    
+    loaded_program = new_loaded_program
+    
+    run_parallel_block(parallel_block)
+
+def handle_prebuild_command(command):
+    regex = re.compile(r"[:;][a-zA-Z]+$")
+    match = regex.search(command)
+    if match:
+        if match.group(0).startswith(';'):
+            return None
+        
+        prebuild_commands = {
+            ':pl': handle_parallel_block
+        }
+        prebuild_commands.get(match.group(0), lambda: None)(command)
+    else:
+        return None
+    
+    
+
 def run_command(comando, with_return=False):
     from pyskell_special_commands import special_commands
+    
+    if comando.startswith('_$'): # if starts with _$ it is a prebuild command like PARALLEL, CONCURRENT, etc.
+        return handle_prebuild_command(comando)
     
     # Separar el comando en tokens, teniendo en cuenta las comillas
     incogint_tokenated = tokenize_command_with_incognit(comando)
@@ -143,30 +209,6 @@ def run_command(comando, with_return=False):
     
             # Save variable for later replacement
             variables_inputs.append({"prompt": prompt, "value": user_input})
-    
-    
-    # tokens = re.findall(r'\".*?\"(?=\s|$)|\S+', comando)
-    
-    # for i, token in enumerate(tokens):
-    #     if token.startswith('?'):
-    #         prompt = token[1:]
-    #         # Quitar las comillas del prompt si las hay
-    #         prompt = prompt[1:-1] if prompt.startswith('"') else prompt
-    #         prompt = prompt if len(prompt.strip()) > 0 else "?"
-    #         user_input = input(prompt + ' ')
-    #         tokens[i] = user_input
-            
-    # # Unir los tokens de nuevo en una única cadena
-    # comando = ' '.join(tokens)
-    
-    # if '?' in comando:
-    #     tokens = comando.split(' ')
-    #     for i, token in enumerate(tokens):
-    #         if token.startswith('?'):
-    #             prompt = token[1:] if len(token) > 1 else "?:"
-    #             user_input = input(prompt + ' ')
-    #             tokens[i] = user_input
-    #     comando = ' '.join(tokens)
     
     if '=' in comando:
         return handle_assignation(comando)
@@ -228,12 +270,17 @@ def run_command(comando, with_return=False):
             print(f"Function '{funcion_nombre}' not recognized or callable.")
 
 def run_pll(file):
-    lines = []
-    with open(file, 'r') as f:
-        lines = f.readlines()
-        for i, line in enumerate(lines):
-            lines[i] = line.replace('\n', '')
+    global loaded_program
     
-    for comando in lines:
-        # print("Running:", comando)
-        run_command(comando)
+    with open(file, 'r') as f:
+        loaded_program = f.readlines()
+        for i, line in enumerate(loaded_program):
+            loaded_program[i] = line.replace('\n', '')
+    
+    for index_command in range(len(loaded_program)):
+        try:
+            comando = loaded_program[index_command]
+            if not comando.startswith('--'):
+                run_command(comando)
+        except:
+            return "Error."

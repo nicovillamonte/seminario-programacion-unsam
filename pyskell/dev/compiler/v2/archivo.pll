@@ -1,10 +1,9 @@
-doble 2
-hola = suma 3 2
+doble 5
 parallel
     parallel
-        for i 5
-            suma i hola
+        sleep 3
+        sleep 4
     parallel
-        doble 3
-        doble 4
-factorial 3
+        sleep 2
+        sleep 6
+doble 6
