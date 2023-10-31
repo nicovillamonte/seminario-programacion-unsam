@@ -1,7 +1,8 @@
 # TODO - Pyskell
 
 Proximo a hacer
-- [ ] Mejorar el codigo para que en vez de comentarlo tenga una lista de comandos ya corridos en paralelo para que no se vuelvan a correr.
+- [X] Mejorar el codigo para que en vez de comentarlo tenga una lista de comandos ya corridos en paralelo para que no se vuelvan a correr.
+- [ ] Hacer que los archivos de dist temporales se eliminen al terminar de ejecutar el programa.
 
 Orden de prioridad:
 - [Manejo de archivos](#manejo-de-archivos)
