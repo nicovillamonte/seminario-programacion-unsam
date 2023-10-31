@@ -3,6 +3,9 @@
 Proximo a hacer
 - [X] Mejorar el codigo para que en vez de comentarlo tenga una lista de comandos ya corridos en paralelo para que no se vuelvan a correr.
 - [ ] Hacer que los archivos de dist temporales se eliminen al terminar de ejecutar el programa.
+- [ ] Hacer la keyword concurrent para concurrencia.
+- [ ] Ver si pasar estas keywords solo a mayuscula
+- [ ] Poder ponerle nombre a `parallel` y `concurrent` y hacer un `wait nombre` para esperar a que termine antes de avanzar. (semaforos)
 
 Orden de prioridad:
 - [Manejo de archivos](#manejo-de-archivos)

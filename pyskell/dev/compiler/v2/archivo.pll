@@ -1,11 +1,9 @@
-doble 1
+doble 5
 parallel
-    sleep 10
-    parallel
+    sleep 3
+    sleep 4
+    concurrent
         sleep 3
-        sleep 4
-    parallel
-        sleep 2
-        sleep 6
+        sleep 1
+    sleep 2
 doble 6
-doble 7
