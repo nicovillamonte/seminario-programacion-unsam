@@ -6,6 +6,8 @@ import re
 import shlex
 from pyskell_shared_global import variables, variables_inputs
 # from pyskell_builder import handle_line_evaluation
+# from pyskell_shared_global import DEV_MODE
+from pyskell_utils import print_if_debug
 
 # variables = []
 loaded_program = []
@@ -134,42 +136,92 @@ def get_block_from_prebuild_command(id):
     global loaded_program
     command_block = []
     block_started = False
+    block_size = 0
+    
+    print_if_debug("searching for id:", id, "in:", loaded_program)
+    
+    start_line, end_line = None, None
     
     for line in loaded_program:
         start_match = re.match(rf'_\${id}\$:.*', line)
-        
         end_match = re.match(rf'_\${id}\$;.*', line)
+        
+        # print_if_debug("Match start:", start_match, "Match end:", end_match)
         if start_match:
+            start_line = line
             block_started = True
             continue
         
         if end_match:
+            end_line = line
             break
         
         if block_started:
             command_block.append(line)
+            block_size += 1
             
-    return command_block if block_started and end_match else None
+    # return [command_block if block_started and end_match else None, block_size]
+    
+    full_block = [start_line] + command_block + [end_line]
+
+    return {
+        "inner": (command_block, block_size),
+        "full": (full_block, len(full_block)),
+    } if block_started and end_match else None
     
 
 def run_parallel_block(block):
+    # print_if_debug("Vengo a correr un bloque paralelo con el bloque", block)
     # Create a new thread (Proccess) for each command 
     
     # Detectar si se abre un bloque
     # Si es asi obtener el bloque entero y mandarlo a run_parallel_block recursivamente
     # Sino crear un Thread para cada comando
     code = []
-    for command in block:
+    proccesses_to_wait = []
+    i = 0
+    
+    while i < len(block):
+        print_if_debug(f"Estoy en el index {i} con el comando {block[i]}")
+        command = block[i]
         if command.startswith('_$'):
             id = obtain_id_from_prebuild_command(command)
-            block = get_block_from_prebuild_command(id)
-            run_parallel_block(block)
-            # TODO: Falta que se saltee todo el bloque al seguir con el for.
+            # print_if_debug("Id obtenido:", id)
+            block_prebuild = get_block_from_prebuild_command(id)
+            print_if_debug("Bloque obtenido:", block)
+            # _, size = block_prebuild.get("inner")
+            full_block, size = block_prebuild.get("full")
+            
+            # print("----------FULL BLOCK", full_block)
+            # get_inner_block_from_prebuild_command
+            # get_block_from_prebuild_command(id).get("inner")
+            
+            # Hacer el tema de los procesos aca.
+            print_if_debug("Mandando a ejecutar bloque:", full_block, size)
+            file_name = f"./dist/temp-{id}.rpll"
+            with open(file_name, 'w+') as f:
+                f.writelines([line + '\n' for line in full_block])
+            block_proccess = Process(target=run_pll,args=(file_name,None,))
+            # print("EMPEZANDO EJECUCION DEL PROCESO DLE BLOQUE")
+            proccesses_to_wait.append(block_proccess)
+            block_proccess.start()
+            # run_parallel_block(block)
+            i += size
         else:
             code.append(command)
+            i += 1
+    # for command in block:
+    #     if command.startswith('_$'):
+    #         id = obtain_id_from_prebuild_command(command)
+    #         block, size = get_block_from_prebuild_command(id)
+    #         run_parallel_block(block)
+            
+    #         # TODO: Falta que se saltee todo el bloque al seguir con el for.
+    #     else:
+    #         code.append(command)
     
     command_proccesses = [
-        Process(target=run_command, args=(command,)) for command in block if not command.startswith('--')
+        Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
     ]
     
     # TODO: Hacer los procesos de los bloques que tienen como target en vez de run_command a run_pll con el nuevo programa (bloque)
@@ -184,48 +236,62 @@ def run_parallel_block(block):
         proccess.join()
 
 def handle_parallel_block(command):
+    # print("Se que es un BLOQUE PARALELO")
     global loaded_program
+    global pyskell_pc
     
     prebuild_command_id = obtain_id_from_prebuild_command(command)
     
+    # print("Tengo el ID:", prebuild_command_id)
+    
     line_index = loaded_program.index(command)
+    
+    # print("Estoy en la linea:", line_index+1)
     
     parallel_block = []
     
     new_loaded_program = loaded_program
-    new_loaded_program[line_index] = "-- " + new_loaded_program[line_index]
+    # new_loaded_program[line_index] = "-- " + new_loaded_program[line_index]
     for i, line in enumerate(loaded_program[line_index+1:]):
-        new_loaded_program[line_index+i+1] = "-- " + new_loaded_program[line_index+i+1]
+        # new_loaded_program[line_index+i+1] = "-- " + new_loaded_program[line_index+i+1]
         if obtain_id_from_prebuild_command(line) == prebuild_command_id:
             break
         else:
             parallel_block.append(line)
+    # print("New loaded program: ", new_loaded_program)
+    # print("Parallel block: ", parallel_block)
     
     loaded_program = new_loaded_program
     
     run_parallel_block(parallel_block)
+    pyskell_pc += len(parallel_block)
 
 def handle_prebuild_command(command):
     regex = re.compile(r"[:;][a-zA-Z]+$")
     match = regex.search(command)
+    
+    # print("MATCHEO O NO MATCHEO:", match)
+    
     if match:
         if match.group(0).startswith(';'):
-            return None
+            # print("Empieza con ;")
+            return "continue"
+        # print("No empieza con ;")
         
         prebuild_commands = {
             ':pl': handle_parallel_block
         }
         prebuild_commands.get(match.group(0), lambda: None)(command)
     else:
-        return None
-    
-    
+        return "continue"
 
 def run_command(comando, with_return=False):
     from pyskell_special_commands import special_commands
     
     if comando.startswith('_$'): # if starts with _$ it is a prebuild command like PARALLEL, CONCURRENT, etc.
-        return handle_prebuild_command(comando)
+        # print("ES un prebuild command:", comando)
+        handle_prebuild_command(comando)
+        return "continue"
     
     # Separar el comando en tokens, teniendo en cuenta las comillas
     incogint_tokenated = tokenize_command_with_incognit(comando)
@@ -307,22 +373,54 @@ def run_command(comando, with_return=False):
             return None
         else:
             print(f"Function '{funcion_nombre}' not recognized or callable.")
+            
+            
+def load_program(file):
+    program = []
+    
+    with open(file, 'r') as f:
+        program = f.readlines()
+        for i, line in enumerate(program):
+            program[i] = line.replace('\n', '')
+    
+    return program
 
-def run_pll(file, program=[]):
+def run_pll(file=None, program=None, principal=True):
+    # print("args:", file, program)
     global loaded_program
     
-    if len(program) > 0:
-        with open(file, 'r') as f:
-            loaded_program = f.readlines()
-            for i, line in enumerate(loaded_program):
-                loaded_program[i] = line.replace('\n', '')
-    else:
-        loaded_program = program
+    #TODO: Puedo hacer un PC (Program Counter) global y que ejecute segun ese PC en vez de un for.
+    global pyskell_pc
     
-    for index_command in range(len(loaded_program)):
+    print_if_debug("RUNNING PROGRAM", file, program)
+    
+    # if program is not None:
+    #     print("Se ejecuta el programa", program)
+    
+    if program is None and file is not None and principal:
+        loaded_program = load_program(file)
+        program = loaded_program
+    elif program is None and file is None:
+        return "Error."
+        
+    # print("PROGRAM TO USE:", program)
+    # print("LENGTH:", len(program))
+    pyskell_pc = 0
+    
+    while pyskell_pc < len(program):
+    # for index_command in range(len(program)):
+        # print("Voy por el index:", index_command)
         try:
-            comando = loaded_program[index_command]
-            if not comando.startswith('--'):
+            comando = program[pyskell_pc]
+            # print("LLEGUE ACA1")
+            regex = re.compile(r"[;][a-zA-Z]+$")
+            # print("LLEGUE ACA2")
+            # match = regex.search(command)
+            if not comando.startswith('--') and not regex.search(comando):
+                # print("LLEGUE ACA3")
+                # print("comando a ejecutar", comando)
                 run_command(comando)
+                # print("LLEGUE ACA4")
         except:
             return "Error."
+        pyskell_pc += 1

@@ -1,11 +1,11 @@
 import pyskell_builder as pbuilder
+import pyskell_execute as pexecuter
 import sys
 import time
-from pyskell_execute import run_pll
 from pyskell_repl import run_repl
 from pyskell_special_commands import clear_screen
-
-DEV_MODE = True
+from pyskell_shared_global import DEV_MODE
+from pyskell_utils import print_if_debug
 
 def main():
     if len(sys.argv) > 1:
@@ -13,21 +13,17 @@ def main():
         
         # If file extension is .pll, build it, else run it
         if file.split('.')[-1] == 'pll':
-            print("Building file:", file)
+            print_if_debug("Building file:", file)
             build_file = pbuilder.build(file=file, print_log=DEV_MODE)
-            print("File builded:", build_file)
+            print_if_debug("File builded:", build_file)
         else:
             build_file = file
         
-        # time.sleep(1)
-        # pause
-        if DEV_MODE:
-            input("Press Enter to continue...")
+        input("Press Enter to continue...") if DEV_MODE else None
         
-        print(f"\nRunning {build_file}")
-        # time.sleep(1)
+        print_if_debug(f"\nRunning {build_file}")
         clear_screen()
-        run_pll(build_file)
+        pexecuter.run_pll(build_file)
     else:
         run_repl()
 

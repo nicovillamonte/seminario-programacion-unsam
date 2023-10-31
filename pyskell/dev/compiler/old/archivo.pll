@@ -1,5 +1,2 @@
-hola = 4
-factorial hola
-
-for i 3
-    factorial i+1
+hola = suma 3 4
+suma 3 hola

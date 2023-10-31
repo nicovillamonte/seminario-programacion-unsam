@@ -1,5 +1,6 @@
-doble 5
+doble 1
 parallel
+    sleep 10
     parallel
         sleep 3
         sleep 4
@@ -7,3 +8,4 @@ parallel
         sleep 2
         sleep 6
 doble 6
+doble 7

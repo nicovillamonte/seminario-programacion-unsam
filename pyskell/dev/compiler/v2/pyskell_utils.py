@@ -1,6 +1,11 @@
 from pyskell_functions import pyskell_exported_functions
 from pyskell_types import PyskellFunction
 from colorama import Fore, Back, Style
+from pyskell_shared_global import DEV_MODE
+
+def print_if_debug(message, *args):
+    if DEV_MODE:
+        print(message, *args)
 
 def search_pyskell_function_by_name(name):
     funcion = None
